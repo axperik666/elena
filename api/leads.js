@@ -8,6 +8,17 @@ function cors(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
+function parseBody(req) {
+  let data = req.body;
+  if (typeof data === 'string') {
+    data = JSON.parse(data);
+  }
+  if (!data || typeof data !== 'object') {
+    throw new Error('Invalid JSON body');
+  }
+  return data;
+}
+
 module.exports = async function handler(req, res) {
   cors(res);
 
@@ -16,49 +27,81 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    return res.status(200).json({ ok: true, message: 'Leads API. POST JSON to save lead.' });
+    return res.status(200).json({
+      ok: true,
+      message: 'Leads API. POST JSON to save lead.',
+      telegram: !!getEnv('TG_BOT_TOKEN'),
+      sheets: !!getEnv('GOOGLE_SHEET_ID')
+    });
   }
 
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
   }
 
+  let data;
   try {
-    const spreadsheetId = getEnv('GOOGLE_SHEET_ID');
-    if (!spreadsheetId) {
-      return res.status(500).json({ ok: false, error: 'GOOGLE_SHEET_ID not configured' });
+    data = parseBody(req);
+  } catch (err) {
+    return res.status(400).json({ ok: false, error: String(err.message || err) });
+  }
+
+  const spreadsheetId = getEnv('GOOGLE_SHEET_ID');
+  const tabName = getEnv('GOOGLE_SHEET_TAB') || SHEET_TAB;
+  const hasTelegram = !!(getEnv('TG_BOT_TOKEN') && getEnv('TG_CHAT_ID'));
+
+  let sheetResult = null;
+  let sheetError = null;
+
+  if (spreadsheetId) {
+    try {
+      sheetResult = await appendLead(spreadsheetId, tabName, data);
+    } catch (err) {
+      sheetError = String(err.message || err);
+      console.error('Sheet save failed:', err);
     }
+  } else {
+    sheetError = 'GOOGLE_SHEET_ID not configured';
+  }
 
-    let data = req.body;
-    if (typeof data === 'string') {
-      data = JSON.parse(data);
-    }
-    if (!data || typeof data !== 'object') {
-      return res.status(400).json({ ok: false, error: 'Invalid JSON body' });
-    }
+  let telegramOk = false;
+  let telegramError = null;
 
-    const tabName = getEnv('GOOGLE_SHEET_TAB') || SHEET_TAB;
-
-    const result = await appendLead(spreadsheetId, tabName, data);
-
+  if (hasTelegram) {
     try {
       await sendTelegramLead(data, {
-        duplicate: result.duplicate,
-        duplicateRows: result.duplicateRows,
-        sapi: result.sapi
+        duplicate: sheetResult && sheetResult.duplicate,
+        duplicateRows: (sheetResult && sheetResult.duplicateRows) || [],
+        sapi: (sheetResult && sheetResult.sapi) || 'новый'
       });
-    } catch (tgErr) {
-      console.error('Telegram failed:', tgErr);
+      telegramOk = true;
+    } catch (err) {
+      telegramError = String(err.message || err);
+      console.error('Telegram failed:', err);
     }
-
-    return res.status(200).json({
-      ok: true,
-      duplicate: result.duplicate,
-      duplicateRows: result.duplicateRows,
-      row: result.newRowNum
-    });
-  } catch (err) {
-    console.error('Lead save failed:', err);
-    return res.status(500).json({ ok: false, error: String(err.message || err) });
+  } else {
+    telegramError = 'TG_BOT_TOKEN or TG_CHAT_ID not configured';
   }
+
+  const ok = telegramOk || !!sheetResult;
+
+  if (!ok) {
+    return res.status(500).json({
+      ok: false,
+      error: 'Lead not saved',
+      sheetError,
+      telegramError
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    telegram: telegramOk,
+    sheet: !!sheetResult,
+    sheetError: sheetResult ? null : sheetError,
+    telegramError: telegramOk ? null : telegramError,
+    duplicate: sheetResult ? sheetResult.duplicate : false,
+    duplicateRows: sheetResult ? sheetResult.duplicateRows : [],
+    row: sheetResult ? sheetResult.newRowNum : null
+  });
 };
