@@ -1,0 +1,31 @@
+---
+description: Открывать и проверять всё только через Google Chrome
+alwaysApply: true
+---
+
+# Только Google Chrome
+
+На этом компьютере все аккаунты (Vercel, GitHub, Google и т.д.) залогинены в **Google Chrome**.
+
+## Обязательно
+
+- **Никогда** не открывать ссылки через Edge, системный браузер по умолчанию или `start URL`.
+- **Всегда** открывать URL так:
+
+```powershell
+Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" "URL"
+```
+
+- Для CLI (Vercel login и т.п.) перед командой:
+
+```powershell
+$env:BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+```
+
+- Ссылки в чате для пользователя давать полными URL — он откроет их в Chrome (в Cursor настроен `workbench.externalBrowser`).
+
+## Запрещено
+
+- `Start-Process "https://..."` без указания chrome.exe
+- `vercel login` без `$env:BROWSER` и без `--` (если CLI открывает браузер сам)
+- Открывать Vercel / Google Cloud / GitHub через Edge
