@@ -219,10 +219,12 @@
                     <div class="grid grid-cols-2 gap-2" id="country-grid">
                         <button data-code="DE" onclick="selectGeo('Германия', '+49')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Германия</button>
                         <button data-code="IL" onclick="selectGeo('Израиль', '+972')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Израиль</button>
-                        <button data-code="AT" onclick="selectGeo('Австрия', '+43')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Австрия</button>
                         <button data-code="FR" onclick="selectGeo('Франция', '+33')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Франция</button>
                         <button data-code="IT" onclick="selectGeo('Италия', '+39')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Италия</button>
                         <button data-code="BE" onclick="selectGeo('Бельгия', '+32')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Бельгия</button>
+                        <button data-code="LT" onclick="selectGeo('Литва', '+370')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Литва</button>
+                        <button data-code="LV" onclick="selectGeo('Латвия', '+371')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Латвия</button>
+                        <button data-code="EE" onclick="selectGeo('Эстония', '+372')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Эстония</button>
                     </div>
                 </div>
 
@@ -428,10 +430,12 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
         const GEO_IN_COUNTRY = {
             'Германия': 'в Германии',
             'Израиль': 'в Израиле',
-            'Австрия': 'в Австрии',
             'Франция': 'во Франции',
             'Италия': 'в Италии',
-            'Бельгия': 'в Бельгии'
+            'Бельгия': 'в Бельгии',
+            'Литва': 'в Литве',
+            'Латвия': 'в Латвии',
+            'Эстония': 'в Эстонии'
         };
         const PAIN_LABELS = {
             'Здоровье': 'Здоровье и жизненные силы',
@@ -439,10 +443,11 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             'Порча': 'Сглаз, порча, проклятие'
         };
         const COUNTRY_MAP = {
-            DE: ['Германия', '+49'], IL: ['Израиль', '+972'], AT: ['Австрия', '+43'],
-            FR: ['Франция', '+33'], IT: ['Италия', '+39'], BE: ['Бельгия', '+32']
+            DE: ['Германия', '+49'], IL: ['Израиль', '+972'],
+            FR: ['Франция', '+33'], IT: ['Италия', '+39'], BE: ['Бельгия', '+32'],
+            LT: ['Литва', '+370'], LV: ['Латвия', '+371'], EE: ['Эстония', '+372']
         };
-        const PHONE_MIN = { '+49': 12, '+972': 11, '+43': 11, '+33': 11, '+39': 11, '+32': 11 };
+        const PHONE_MIN = { '+49': 12, '+972': 11, '+33': 11, '+39': 11, '+32': 11, '+370': 11, '+371': 11, '+372': 10 };
 
         let userData = { name:'', pain:'', age:'', geo:'', residency:'', belief:'', beliefType:'', phonePrefix:'', phone:'', email:'', whatsapp:true, utm:{} };
         let rejectReturnStep = 7;
@@ -458,13 +463,13 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
         var REVIEWS = [
             { text: 'После звонка наконец поняла, откуда тянется эта тяжесть. Эксперт назвала вещи, о которых я молчала годами. Уже через неделю стало легче дышать.', author: 'Наталья, 52 года, Германия' },
             { text: 'Думала, что просто устала. На диагностике объяснили про родовую программу — многое встало на место. Муж снова стал разговаривать со мной нормально.', author: 'Ирина, 47 лет, Израиль' },
-            { text: 'Врачи ничего не находили, а сил не было вообще. Эксперт сразу сказала, где слабое место. Сейчас сплю нормально впервые за полгода.', author: 'Ольга, 58 лет, Австрия' },
+            { text: 'Врачи ничего не находили, а сил не было вообще. Эксперт сразу сказала, где слабое место. Сейчас сплю нормально впервые за полгода.', author: 'Ольга, 58 лет, Литва' },
             { text: 'Боялась, что это всё «ерунда». Но разговор был спокойный, без запугивания. Помогло понять, почему дочь отдалилась — и что с этим делать.', author: 'Марина, 44 года, Франция' },
             { text: 'Чувствовала чужой негатив, но стыдилась кому-то говорить. Здесь меня выслушали без осуждения. После консультации стало спокойнее в доме.', author: 'Светлана, 61 год, Италия' },
             { text: 'Записалась из отчаяния — дела шли только хуже. Эксперт объяснила простым языком, что происходит. Через месяц ситуация на работе изменилась.', author: 'Анна, 49 лет, Бельгия' },
             { text: 'Мужчина ушёл внезапно, я не понимала почему. На разборе назвали настоящую причину — не ту, о которой я думала. Это дало силы двигаться дальше.', author: 'Елена, 55 лет, Германия' },
             { text: 'Сын часто болел, врачи разводили руками. После диагностики сделали то, что советовали — стало заметно легче. Благодарна от всего сердца.', author: 'Людмила, 43 года, Израиль' },
-            { text: 'Не верила в такие вещи, но подруга уговорила. Удивилась, насколько точно описали мою ситуацию. Теперь верю — есть то, что глазами не видно.', author: 'Тамара, 56 лет, Австрия' },
+            { text: 'Не верила в такие вещи, но подруга уговорила. Удивилась, насколько точно описали мою ситуацию. Теперь верю — есть то, что глазами не видно.', author: 'Тамара, 56 лет, Эстония' },
             { text: 'После переезда всё рушилось: здоровье, деньги, отношения. Эксперт связала это с энергетикой нового места. Советы помогли — жизнь постепенно налаживается.', author: 'Виктория, 51 год, Франция' }
         ];
         var reviewIndex = 0;
