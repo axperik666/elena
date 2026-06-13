@@ -31,7 +31,11 @@ var HEADERS = [
   'fbclid', 'gclid', 'yclid', 'subid', 'Страница'
 ];
 
-var COL_PHONE = 5; // колонка E «Телефон»
+var LAST_COL = 'X'; // 24-я колонка
+
+function dataRows_(sheet) {
+  return Math.max(sheet.getLastRow(), 500);
+}
 
 function doPost(e) {
   try {
@@ -62,21 +66,21 @@ function ensureFilter_(sheet) {
   removeFilterSafe_(sheet);
   SpreadsheetApp.flush();
   if (sheet.getFilter()) return;
-  var rows = Math.max(sheet.getLastRow(), 100);
-  sheet.getRange(1, 1, rows, HEADERS.length).createFilter();
+  var n = Math.max(sheet.getLastRow(), 100);
+  sheet.getRange('A1:' + LAST_COL + n).createFilter();
 }
 
 function applyCapiValidation_(sheet) {
-  var rows = Math.max(sheet.getLastRow(), 500);
-  sheet.getRange(1, 2).setValue('CAPI');
-  sheet.getRange(2, 1, rows, 1).clearDataValidations();
-  sheet.getRange(2, 3, rows, HEADERS.length).clearDataValidations();
+  var n = dataRows_(sheet);
+  sheet.getRange('B1').setValue('CAPI');
+  // Снять проверку данных со всего листа, затем — только B
+  sheet.getRange('A2:' + LAST_COL + n).clearDataValidations();
   var rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(CAPI_STATUSES, true)
     .setAllowInvalid(false)
     .setHelpText('CAPI (Facebook): новый → валид → квал / не квал → отправлен')
     .build();
-  sheet.getRange(2, 2, rows, 2).setDataValidation(rule);
+  sheet.getRange('B2:B' + n).setDataValidation(rule);
 }
 
 function applyCapiColors_(sheet) {
@@ -164,7 +168,7 @@ function setupSheetLayout() {
     .whenFormulaSatisfied('=AND($E2<>"";COUNTIF($E:$E;$E2)>1)')
     .setBackground('#ffcccc')
     .setBold(true)
-    .setRanges([sheet.getRange(2, 1, sheet.getMaxRows(), HEADERS.length)])
+    .setRanges([sheet.getRange('A2:' + LAST_COL)])
     .build());
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('новый').setBackground('#fff9d1').setRanges([sheet.getRange('B2:B')]).build());
@@ -213,7 +217,9 @@ function normPhone_(p) {
 function findDupRows_(sheet, phone) {
   var target = normPhone_(phone);
   if (!target || target.length < 6) return [];
-  var vals = sheet.getRange(2, COL_PHONE, Math.max(sheet.getLastRow(), 2), COL_PHONE).getValues();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  var vals = sheet.getRange('E2:E' + lastRow).getValues();
   var rows = [];
   for (var i = 0; i < vals.length; i++) {
     if (normPhone_(vals[i][0]) === target) rows.push(i + 2);
