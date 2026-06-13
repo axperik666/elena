@@ -37,9 +37,22 @@ function dataRows_(sheet) {
   return Math.max(sheet.getLastRow(), 500);
 }
 
+function parseBody_(e) {
+  if (e && e.postData && e.postData.contents) {
+    try { return JSON.parse(e.postData.contents); } catch (err) { Logger.log('JSON parse: ' + err); }
+  }
+  if (e && e.parameter && e.parameter.payload) {
+    try { return JSON.parse(e.parameter.payload); } catch (err) { Logger.log('payload parse: ' + err); }
+  }
+  return {};
+}
+
 function doPost(e) {
   try {
     var data = parseBody_(e);
+    if (!data.phone && !data.name) {
+      return json_({ ok: false, error: 'Empty payload — нет phone/name' });
+    }
     var sheet = ensureSheet_();
     appendRow_(sheet, data);
     SpreadsheetApp.flush();
@@ -77,7 +90,7 @@ function applyCapiValidation_(sheet) {
   sheet.getRange('A2:' + LAST_COL + n).clearDataValidations();
   var rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(CAPI_STATUSES, true)
-    .setAllowInvalid(false)
+    .setAllowInvalid(true)
     .setHelpText('CAPI (Facebook): новый → валид → квал / не квал → отправлен')
     .build();
   sheet.getRange('B2:B' + n).setDataValidation(rule);
@@ -190,12 +203,6 @@ function setupSheetLayout() {
 
   SpreadsheetApp.flush();
   Logger.log('Таблица настроена');
-}
-
-function parseBody_(e) {
-  if (e && e.postData && e.postData.contents) return JSON.parse(e.postData.contents);
-  if (e && e.parameter && e.parameter.payload) return JSON.parse(e.parameter.payload);
-  return {};
 }
 
 function ensureSheet_() {

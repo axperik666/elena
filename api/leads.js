@@ -4,6 +4,8 @@ const { appendLead } = require('../lib/google-sheets');
 const { appendLeadViaWebapp } = require('../lib/google-webapp');
 const { sendTelegramLead } = require('../lib/telegram');
 
+const SHEET_TIMEOUT_MS = 8000;
+
 function getEnv(name) {
   return getEnvAny(name);
 }
@@ -86,48 +88,36 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  let telegramOk = false;
-  let telegramError = null;
-
-  const tasks = [];
-
   if (!sheetResult && webappUrl) {
-    tasks.push(
-      withTimeout(appendLeadViaWebapp(data), 10000)
-        .then(function () {
-          sheetResult = { capi: 'новый', sapi: 'новый', duplicate: false, duplicateRows: [] };
-        })
-        .catch(function (err) {
-          sheetError = String(err.message || err);
-          console.error('Sheet webapp save failed:', err);
-        })
-    );
+    try {
+      await withTimeout(appendLeadViaWebapp(data), SHEET_TIMEOUT_MS);
+      sheetResult = { capi: 'новый', sapi: 'новый', duplicate: false, duplicateRows: [] };
+    } catch (err) {
+      sheetError = String(err.message || err);
+      console.error('Sheet webapp save failed:', err);
+    }
   } else if (!sheetResult && !webappUrl) {
     sheetError = 'Google Sheet not configured (optional)';
   }
 
+  let telegramOk = false;
+  let telegramError = null;
+
   if (hasTelegram) {
-    tasks.push(
-      sendTelegramLead(data, {
-        duplicate: false,
-        duplicateRows: [],
-        sapi: 'новый',
-        capi: 'новый'
-      })
-        .then(function () {
-          telegramOk = true;
-        })
-        .catch(function (err) {
-          telegramError = String(err.message || err);
-          console.error('Telegram failed:', err);
-        })
-    );
+    try {
+      await sendTelegramLead(data, {
+        duplicate: sheetResult ? sheetResult.duplicate : false,
+        duplicateRows: sheetResult ? sheetResult.duplicateRows : [],
+        capi: 'новый',
+        sapi: 'новый'
+      });
+      telegramOk = true;
+    } catch (err) {
+      telegramError = String(err.message || err);
+      console.error('Telegram failed:', err);
+    }
   } else {
     telegramError = 'TG_BOT_TOKEN or TG_CHAT_ID not configured on Vercel';
-  }
-
-  if (tasks.length) {
-    await Promise.allSettled(tasks);
   }
 
   const ok = telegramOk || !!sheetResult;
