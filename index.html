@@ -45,7 +45,7 @@
         }
         .country-btn { position: relative; }
         .hidden { display: none !important; }
-        .expert-photo { object-fit: cover; object-position: center; }
+        .expert-photo { object-fit: cover; object-position: center 20%; aspect-ratio: 1; display: block; }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -91,13 +91,15 @@
             <!-- СТАРТ -->
             <div id="start-screen" class="fade-in space-y-5 text-center">
                 <div class="flex flex-col items-center gap-3">
-                    <div class="relative">
-                        <img src="" alt="Эксперт" class="expert-photo w-24 h-24 rounded-full object-cover border-2 border-purple-600/50 pulse-ring shadow-lg shadow-purple-900/40">
+                    <div class="relative shrink-0">
+                        <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-purple-600/50 pulse-ring shadow-lg shadow-purple-900/40">
+                            <img src="" alt="Эксперт" class="expert-photo w-full h-full">
+                        </div>
                         <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-black rounded-full" title="Онлайн"></div>
                     </div>
                     <div>
                         <p class="text-white font-semibold text-sm" id="expert-name-display">Елена М.</p>
-                        <p class="text-[11px] text-purple-400">Практикующий эксперт · 18 лет опыта</p>
+                        <p class="text-[11px] text-purple-400">Практикующий эксперт · 18 лет опыта, несколько сотен счастливых женщин</p>
                     </div>
                 </div>
 
@@ -239,7 +241,7 @@
                     <h2 class="text-xl font-serif text-white">Диагностика проводится экспертом <span class="text-purple-400 font-semibold">строго лично по телефону</span>. Вы готовы ответить на звонок?</h2>
                     <div class="space-y-2">
                         <button type="button" onclick="showLoading()" class="w-full text-center bg-purple-700 hover:bg-purple-600 text-white font-semibold p-4 rounded-xl transition cursor-pointer shadow-lg shadow-purple-900/30">Да, мне нужна помощь, я жду звонка</button>
-                        <button type="button" onclick="rejectUser('curious')" class="w-full text-center bg-transparent hover:bg-red-950/20 border border-red-900/40 text-gray-400 p-4 rounded-xl transition cursor-pointer">Нет, я не готов(а) говорить / из любопытства</button>
+                        <button type="button" onclick="rejectUser('curious')" class="w-full text-center bg-transparent hover:bg-red-950/20 border border-red-900/40 text-gray-400 p-4 rounded-xl transition cursor-pointer">Нет, я не готова говорить / из любопытства</button>
                     </div>
                 </div>
             </div>
@@ -261,7 +263,9 @@
             <!-- ФОРМА -->
             <div id="form-screen" class="hidden fade-in space-y-5">
                 <div class="flex items-center gap-3 bg-purple-950/20 border border-purple-900/30 rounded-xl p-3">
-                    <img src="" alt="" class="expert-photo w-12 h-12 rounded-full object-cover border border-purple-600/40 shrink-0">
+                    <div class="w-12 h-12 shrink-0 rounded-full overflow-hidden border border-purple-600/40">
+                        <img src="" alt="" class="expert-photo w-full h-full">
+                    </div>
                     <div class="text-left">
                         <p class="text-sm text-white font-semibold" id="form-expert-name">Елена М.</p>
                         <p class="text-[11px] text-green-400">● Свободна для звонка</p>
