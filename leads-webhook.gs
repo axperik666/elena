@@ -286,8 +286,8 @@ function setPhoneCell_(sheet, row, phone) {
 
 function appendRow_(sheet, data) {
   var utm = data.utm || {};
-  var rowNum = Math.max(sheet.getLastRow(), 1) + 1;
-  sheet.getRange(rowNum, 1, rowNum, HEADERS.length).setValues([[
+  var phone = data.phone || '';
+  sheet.appendRow([
     data.submittedAt ? new Date(data.submittedAt) : new Date(),
     'новый',
     data.name || '', data.email || '', '',
@@ -299,8 +299,8 @@ function appendRow_(sheet, data) {
     utm.utm_content || '', utm.utm_term || '',
     utm.fbclid || '', utm.gclid || '', utm.yclid || '',
     utm.subid || utm.sub_id || '', data.pageUrl || ''
-  ]]);
-  setPhoneCell_(sheet, rowNum, data.phone || '');
+  ]);
+  setPhoneCell_(sheet, sheet.getLastRow(), phone);
 }
 
 function sendTelegram_(data, dupRows) {
