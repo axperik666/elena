@@ -1,4 +1,4 @@
-const { SHEET_TAB } = require('../lib/leads-config');
+const { SHEET_TAB, compactPhoneForSheet } = require('../lib/leads-config');
 const { getEnvAny } = require('../lib/get-env');
 const { appendLead } = require('../lib/google-sheets');
 const { appendLeadViaWebapp } = require('../lib/google-webapp');
@@ -68,6 +68,10 @@ module.exports = async function handler(req, res) {
     data = parseBody(req);
   } catch (err) {
     return res.status(400).json({ ok: false, error: String(err.message || err) });
+  }
+
+  if (data.phone) {
+    data.phone = compactPhoneForSheet(data.phone);
   }
 
   const spreadsheetId = getEnvAny('GOOGLE_SHEET_ID');

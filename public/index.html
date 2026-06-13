@@ -766,6 +766,11 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             return digits.length >= min;
         }
 
+        function compactPhone(phone) {
+            var digits = String(phone || '').replace(/\D/g, '');
+            return digits ? '+' + digits : '';
+        }
+
         function buildLeadPayload(extra) {
             var payload = {
                 name: userData.name,
@@ -776,7 +781,7 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
                 residency: userData.residency,
                 belief: userData.belief || '',
                 beliefType: userData.beliefType || '',
-                phone: userData.phone || '',
+                phone: compactPhone(userData.phone || ''),
                 email: userData.email || '',
                 whatsapp: userData.whatsapp,
                 utm: userData.utm,

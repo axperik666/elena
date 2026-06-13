@@ -274,18 +274,20 @@ function findDupRows_(sheet, phone) {
 
 var PHONE_COL = 5;
 
-function compactPhoneForSheet_(phone) {
-  if (!phone) return '';
-  var digits = String(phone).replace(/\D/g, '');
-  return digits ? '+' + digits : '';
+function phoneDigits_(phone) {
+  return String(phone || '').replace(/\D/g, '');
+}
+
+function sheetPhoneFormula_(phone) {
+  var digits = phoneDigits_(phone);
+  if (!digits) return '';
+  return '="+' + digits + '"';
 }
 
 function setPhoneCell_(sheet, row, phone) {
-  var compact = compactPhoneForSheet_(phone);
-  if (!compact) return;
-  var cell = sheet.getRange(row, PHONE_COL);
-  cell.setNumberFormat('@');
-  cell.setValue(compact);
+  var formula = sheetPhoneFormula_(phone);
+  if (!formula) return;
+  sheet.getRange(row, PHONE_COL).setFormula(formula);
 }
 
 function appendRow_(sheet, data) {
