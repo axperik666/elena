@@ -24,7 +24,8 @@ staticFiles.forEach((file) => {
   }
 });
 
-const webapp = (process.env.GOOGLE_SHEET_WEBAPP_URL || '').trim();
+const { DEFAULT_GOOGLE_SHEET_WEBAPP_URL } = require('../lib/webapp-url');
+const webapp = (process.env.GOOGLE_SHEET_WEBAPP_URL || '').trim() || DEFAULT_GOOGLE_SHEET_WEBAPP_URL;
 const primary = '/api/leads';
 const fallback = webapp;
 

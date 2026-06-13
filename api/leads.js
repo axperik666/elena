@@ -34,11 +34,14 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'GET') {
     const hasTg = !!(getEnvAny('TG_BOT_TOKEN') && getEnvAny('TG_CHAT_ID'));
+    const hasServiceAccount = !!(getEnvAny('GOOGLE_SERVICE_ACCOUNT_EMAIL') && getEnvAny('GOOGLE_PRIVATE_KEY'));
+    const hasSheetsApi = !!(getEnvAny('GOOGLE_SHEET_ID') && hasServiceAccount);
+    const hasWebapp = !!getEnvAny('GOOGLE_SHEET_WEBAPP_URL');
     return res.status(200).json({
       ok: true,
       message: 'Leads API. POST JSON to save lead.',
       telegram: hasTg,
-      sheets: !!(getEnvAny('GOOGLE_SHEET_ID') || getEnvAny('GOOGLE_SHEET_WEBAPP_URL')),
+      sheets: hasSheetsApi || hasWebapp,
       hint: hasTg ? null : 'Добавьте TG_BOT_TOKEN и TG_CHAT_ID в Vercel → Settings → Environment Variables → Redeploy'
     });
   }
@@ -58,18 +61,21 @@ module.exports = async function handler(req, res) {
   const webappUrl = getEnvAny('GOOGLE_SHEET_WEBAPP_URL');
   const tabName = getEnv('GOOGLE_SHEET_TAB') || SHEET_TAB;
   const hasTelegram = !!(getEnvAny('TG_BOT_TOKEN') && getEnvAny('TG_CHAT_ID'));
+  const hasServiceAccount = !!(getEnvAny('GOOGLE_SERVICE_ACCOUNT_EMAIL') && getEnvAny('GOOGLE_PRIVATE_KEY'));
 
   let sheetResult = null;
   let sheetError = null;
 
-  if (spreadsheetId) {
+  if (spreadsheetId && hasServiceAccount) {
     try {
       sheetResult = await appendLead(spreadsheetId, tabName, data);
     } catch (err) {
       sheetError = String(err.message || err);
       console.error('Sheet API save failed:', err);
     }
-  } else if (webappUrl) {
+  }
+
+  if (!sheetResult && webappUrl) {
     try {
       await appendLeadViaWebapp(data);
       sheetResult = { sapi: 'новый', duplicate: false, duplicateRows: [] };
@@ -77,7 +83,7 @@ module.exports = async function handler(req, res) {
       sheetError = String(err.message || err);
       console.error('Sheet webapp save failed:', err);
     }
-  } else {
+  } else if (!sheetResult && !webappUrl) {
     sheetError = 'Google Sheet not configured (optional)';
   }
 
