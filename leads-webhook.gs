@@ -6,7 +6,7 @@
  */
 
 var CONFIG = {
-  SHEET_ID: 'ВСТАВЬТЕ_ID_ТАБЛИЦЫ',
+  SHEET_ID: '1B6C7vMLSevW3wvAIUQXBkK8jdIMzk4QbCUSVB2DbDdY',
   SHEET_NAME: 'Лиды',
   TG_BOT_TOKEN: '',
   TG_CHAT_ID: ''
