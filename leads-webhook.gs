@@ -1,13 +1,15 @@
 /**
- * ЗАПАСНОЙ WEBHOOK — Google Apps Script
- * Основной способ: /api/leads на Vercel + Google Sheets API v4
+ * WEBHOOK — Google Таблица (Apps Script)
+ * Google Cloud НЕ нужен. TG уже идёт через Vercel /api/leads
+ *
+ * script.google.com → вставить код → setupSheetLayout → Развернуть
  */
 
 var CONFIG = {
   SHEET_ID: 'ВСТАВЬТЕ_ID_ТАБЛИЦЫ',
   SHEET_NAME: 'Лиды',
-  TG_BOT_TOKEN: 'ВСТАВЬТЕ_TOKEN_БОТА',
-  TG_CHAT_ID: 'ВСТАВЬТЕ_CHAT_ID'
+  TG_BOT_TOKEN: '',
+  TG_CHAT_ID: ''
 };
 
 var SAPI_STATUSES = ['новый', 'валид', 'квал', 'трэш', 'дубль'];
@@ -20,7 +22,7 @@ var HEADERS = [
   'fbclid', 'gclid', 'yclid', 'subid', 'Страница'
 ];
 
-var COL_PHONE = 5;
+var COL_PHONE = 5; // колонка E «Телефон»
 
 function doPost(e) {
   try {
@@ -151,7 +153,7 @@ function appendRow_(sheet, data) {
 }
 
 function sendTelegram_(data, dupRows) {
-  if (!CONFIG.TG_BOT_TOKEN || String(CONFIG.TG_BOT_TOKEN).indexOf('ВСТАВЬТЕ') !== -1) return;
+  if (!CONFIG.TG_BOT_TOKEN || !CONFIG.TG_CHAT_ID) return;
   var prefix = dupRows.length > 1
     ? '🔁 <b>ДУБЛЬ</b> (строки ' + dupRows.join(', ') + ')\n\n'
     : (data.partial ? '⏳ ' : '🆕 ');
