@@ -1,0 +1,12 @@
+{
+  "name": "elena-quiz",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Quiz landing with Google Sheets leads API",
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

@@ -2,7 +2,7 @@
 const SITE_CONFIG = {
     CONTACT_EMAIL: '',
     FB_PIXEL_ID: '',
-    // URL Google Apps Script — см. НАСТРОЙКА-ЛИДОВ.txt
-    LEAD_WEBHOOK_URL: '',
+    // На Vercel: /api/leads (Google Sheets API)
+    LEAD_WEBHOOK_URL: '/api/leads',
     EXPERT_NAME: 'Елена М.'
 };

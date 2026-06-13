@@ -1,5 +1,10 @@
 .vercel
 .tools
+.env
+.env.local
+service-account*.json
+node_modules
 expert-photo.b64.txt
 assets.js
 *.ps1
+.vercel-login.log
