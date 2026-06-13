@@ -184,6 +184,7 @@ function setupSheetLayout() {
   sheet.setColumnWidth(HEADERS.length, 260);
 
   sheet.getRange('A2:A').setNumberFormat('dd.mm.yyyy hh:mm');
+  sheet.getRange('E2:E').setNumberFormat('@');
 
   var rules = [];
   rules.push(SpreadsheetApp.newConditionalFormatRule()
@@ -254,12 +255,19 @@ function findDupRows_(sheet, phone) {
   return rows;
 }
 
+function sheetText_(v) {
+  if (!v) return '';
+  v = String(v);
+  if (v.charAt(0) === '+' || v.charAt(0) === '=' || v.charAt(0) === '-') return "'" + v;
+  return v;
+}
+
 function appendRow_(sheet, data) {
   var utm = data.utm || {};
   sheet.appendRow([
     data.submittedAt ? new Date(data.submittedAt) : new Date(),
     'новый',
-    data.name || '', data.email || '', data.phone || '',
+    data.name || '', data.email || '', sheetText_(data.phone || ''),
     data.whatsapp ? 'Да' : 'Нет',
     data.pain || '', data.painLabel || '', data.age || '', data.geo || '',
     data.residency || '', data.belief || '', data.beliefType || '',
