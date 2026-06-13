@@ -62,8 +62,17 @@ function doPost(e) {
   }
 }
 
-function doGet() {
-  return ContentService.createTextOutput('Webhook OK. POST only.').setMimeType(ContentService.MimeType.TEXT);
+function doGet(e) {
+  var p = e && e.parameter;
+  if (p && p.fix === 'capi') {
+    try {
+      fixCapiDropdownOnly();
+      return json_({ ok: true, message: 'CAPI: заголовок и выпадающий список обновлены' });
+    } catch (err) {
+      return json_({ ok: false, error: String(err) });
+    }
+  }
+  return ContentService.createTextOutput('Webhook OK. POST only. GET ?fix=capi — обновить заголовок CAPI.').setMimeType(ContentService.MimeType.TEXT);
 }
 
 function removeFilterSafe_(sheet) {
@@ -210,8 +219,19 @@ function ensureSheet_() {
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.insertSheet(CONFIG.SHEET_NAME);
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-  } else if (sheet.getRange(1, 2).getValue() !== 'CAPI' && sheet.getRange(1, 2).getValue() !== 'SAPI') {
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    applyCapiValidation_(sheet);
+    applyCapiColors_(sheet);
+  } else {
+    var b1 = String(sheet.getRange(1, 2).getValue() || '').trim();
+    if (b1 === 'SAPI') {
+      applyCapiValidation_(sheet);
+      applyCapiColors_(sheet);
+      Logger.log('CAPI: заголовок SAPI переименован в CAPI');
+    } else if (b1 !== 'CAPI') {
+      sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+      applyCapiValidation_(sheet);
+      applyCapiColors_(sheet);
+    }
   }
   return sheet;
 }
