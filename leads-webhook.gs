@@ -41,7 +41,10 @@ function doGet() {
 }
 
 function setupSheetLayout() {
-  var sheet = ensureSheet_();
+  var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.insertSheet(CONFIG.SHEET_NAME);
+  var filter = sheet.getFilter();
+  if (filter) filter.remove();
   sheet.clear();
   sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
   sheet.getRange(1, 1, 1, HEADERS.length)
