@@ -45,7 +45,7 @@
         }
         .country-btn { position: relative; }
         .hidden { display: none !important; }
-        .expert-photo { object-fit: cover; object-position: center 22%; display: block; }
+        .expert-photo { object-fit: cover; object-position: center 20%; display: block; }
         .expert-avatar-ring {
             width: 6rem;
             height: 6rem;
@@ -53,15 +53,21 @@
             overflow: hidden;
             position: relative;
         }
-        .expert-photo-hero {
+        .expert-photo-squeeze {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 50%;
+            width: 136%;
+            height: 100%;
+            transform: translateX(-50%) scaleX(0.74);
+            transform-origin: center center;
+        }
+        .expert-photo-hero {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            object-position: center 22%;
-            transform: scaleX(0.84);
-            transform-origin: center center;
+            object-position: center 18%;
+            display: block;
         }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
@@ -110,7 +116,9 @@
                 <div class="flex flex-col items-center gap-3">
                     <div class="relative shrink-0">
                         <div class="expert-avatar-ring border-2 border-purple-600/50 pulse-ring shadow-lg shadow-purple-900/40">
-                            <img src="" alt="Эксперт" class="expert-photo-hero">
+                            <div class="expert-photo-squeeze">
+                                <img src="" alt="Эксперт" class="expert-photo-hero">
+                            </div>
                         </div>
                         <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-black rounded-full" title="Онлайн"></div>
                     </div>
