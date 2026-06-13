@@ -40,12 +40,29 @@ function doGet() {
   return ContentService.createTextOutput('Webhook OK. POST only.').setMimeType(ContentService.MimeType.TEXT);
 }
 
+function removeFilterSafe_(sheet) {
+  try {
+    var filter = sheet.getFilter();
+    if (filter) filter.remove();
+  } catch (err) {
+    Logger.log('removeFilter: ' + err);
+  }
+}
+
+function ensureFilter_(sheet) {
+  removeFilterSafe_(sheet);
+  SpreadsheetApp.flush();
+  if (sheet.getFilter()) return;
+  var rows = Math.max(sheet.getLastRow(), 100);
+  sheet.getRange(1, 1, rows, HEADERS.length).createFilter();
+}
+
 function setupSheetLayout() {
   var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.insertSheet(CONFIG.SHEET_NAME);
-  var filter = sheet.getFilter();
-  if (filter) filter.remove();
+  removeFilterSafe_(sheet);
   sheet.clear();
+  removeFilterSafe_(sheet);
   sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
   sheet.getRange(1, 1, 1, HEADERS.length)
     .setBackground('#2a1454')
@@ -55,7 +72,7 @@ function setupSheetLayout() {
     .setWrap(true);
   sheet.setFrozenRows(1);
   sheet.setFrozenColumns(2);
-  sheet.getRange(1, 1, sheet.getMaxRows(), HEADERS.length).createFilter();
+  ensureFilter_(sheet);
 
   var rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(SAPI_STATUSES, true)
@@ -83,7 +100,7 @@ function setupSheetLayout() {
 
   sheet.getRange('A2:A').setNumberFormat('dd.mm.yyyy hh:mm');
 
-  var rules = sheet.getConditionalFormatRules();
+  var rules = [];
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=AND($E2<>"";COUNTIF($E:$E;$E2)>1)')
     .setBackground('#ffcccc')
