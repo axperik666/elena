@@ -12,10 +12,19 @@ var CONFIG = {
   TG_CHAT_ID: ''
 };
 
-var SAPI_STATUSES = ['новый', 'валид', 'квал', 'трэш', 'дубль'];
+var CAPI_STATUSES = [
+  'новый',      // с ленда, в Facebook ещё не отправляли
+  'валид',      // контакт проверен
+  'квал',       // квалифицирован → отправить в CAPI
+  'не квал',    // не квалифицирован → отправить в CAPI
+  'трэш',       // мусор, в Facebook не отправлять
+  'дубль',      // повтор
+  'отправлен',  // событие уже ушло в CAPI
+  'ошибка'      // не удалось отправить в CAPI
+];
 
 var HEADERS = [
-  'Дата', 'SAPI', 'Имя', 'Email', 'Телефон', 'WhatsApp',
+  'Дата', 'CAPI', 'Имя', 'Email', 'Телефон', 'WhatsApp',
   'Проблема (код)', 'Проблема (текст)', 'Возраст', 'Страна', 'Проживание',
   'Зависть (ответ)', 'Тип CRM', 'Частичный лид',
   'UTM Source', 'UTM Medium', 'UTM Campaign', 'UTM Content', 'UTM Term',
@@ -57,27 +66,60 @@ function ensureFilter_(sheet) {
   sheet.getRange(1, 1, rows, HEADERS.length).createFilter();
 }
 
-function applySapiValidation_(sheet) {
+function applyCapiValidation_(sheet) {
   var rows = Math.max(sheet.getLastRow(), 500);
-  // Снять проверку данных везде, кроме колонки SAPI (B)
+  sheet.getRange(1, 2).setValue('CAPI');
   sheet.getRange(2, 1, rows, 1).clearDataValidations();
   sheet.getRange(2, 3, rows, HEADERS.length).clearDataValidations();
   var rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(SAPI_STATUSES, true)
+    .requireValueInList(CAPI_STATUSES, true)
     .setAllowInvalid(false)
-    .setHelpText('SAPI: новый, валид, квал, трэш, дубль')
+    .setHelpText('CAPI (Facebook): новый → валид → квал / не квал → отправлен')
     .build();
   sheet.getRange(2, 2, rows, 2).setDataValidation(rule);
 }
 
-/** Только SAPI — без очистки лидов. Запустить один раз в Apps Script. */
-function fixSapiDropdownOnly() {
+function applyCapiColors_(sheet) {
+  var capiRange = sheet.getRange('B2:B');
+  var rules = sheet.getConditionalFormatRules().filter(function (rule) {
+    var ranges = rule.getRanges();
+    if (!ranges || !ranges.length) return true;
+    return ranges[0].getColumn() !== 2;
+  });
+  var colors = [
+    ['новый', '#fff9d1'],
+    ['валид', '#d1f0d1'],
+    ['квал', '#c7ddf8'],
+    ['не квал', '#ffe0cc'],
+    ['трэш', '#e0e0e0'],
+    ['дубль', '#f8cccc'],
+    ['отправлен', '#e8d4f8'],
+    ['ошибка', '#ff9999']
+  ];
+  for (var i = 0; i < colors.length; i++) {
+    rules.push(SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo(colors[i][0])
+      .setBackground(colors[i][1])
+      .setRanges([capiRange])
+      .build());
+  }
+  sheet.setConditionalFormatRules(rules);
+}
+
+/** CAPI: выпадающий список только в колонке B. Без удаления лидов. */
+function fixCapiDropdownOnly() {
   var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
   if (!sheet) throw new Error('Лист «' + CONFIG.SHEET_NAME + '» не найден');
-  applySapiValidation_(sheet);
+  applyCapiValidation_(sheet);
+  applyCapiColors_(sheet);
   SpreadsheetApp.flush();
-  Logger.log('Выпадающий список только в колонке SAPI');
+  Logger.log('CAPI: выпадающий список и цвета обновлены');
+}
+
+/** @deprecated — используйте fixCapiDropdownOnly */
+function fixSapiDropdownOnly() {
+  fixCapiDropdownOnly();
 }
 
 function setupSheetLayout() {
@@ -96,10 +138,10 @@ function setupSheetLayout() {
   sheet.setFrozenRows(1);
   sheet.setFrozenColumns(2);
   ensureFilter_(sheet);
-  applySapiValidation_(sheet);
+  applyCapiValidation_(sheet);
 
   sheet.setColumnWidth(1, 155);
-  sheet.setColumnWidth(2, 95);
+  sheet.setColumnWidth(2, 105);
   sheet.setColumnWidth(3, 120);
   sheet.setColumnWidth(4, 185);
   sheet.setColumnWidth(5, 155);
@@ -131,9 +173,15 @@ function setupSheetLayout() {
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('квал').setBackground('#c7ddf8').setRanges([sheet.getRange('B2:B')]).build());
   rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('не квал').setBackground('#ffe0cc').setRanges([sheet.getRange('B2:B')]).build());
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('трэш').setBackground('#e0e0e0').setRanges([sheet.getRange('B2:B')]).build());
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('дубль').setBackground('#f8cccc').setRanges([sheet.getRange('B2:B')]).build());
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('отправлен').setBackground('#e8d4f8').setRanges([sheet.getRange('B2:B')]).build());
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('ошибка').setBackground('#ff9999').setRanges([sheet.getRange('B2:B')]).build());
   sheet.setConditionalFormatRules(rules);
 
   SpreadsheetApp.flush();
@@ -151,7 +199,7 @@ function ensureSheet_() {
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.insertSheet(CONFIG.SHEET_NAME);
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-  } else if (sheet.getRange(1, 2).getValue() !== 'SAPI') {
+  } else if (sheet.getRange(1, 2).getValue() !== 'CAPI' && sheet.getRange(1, 2).getValue() !== 'SAPI') {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
   }
   return sheet;
@@ -197,7 +245,7 @@ function sendTelegram_(data, dupRows) {
     : (data.partial ? '⏳ ' : '🆕 ');
   var text = prefix +
     '👤 ' + esc_(data.name) + ' | 📞 ' + esc_(data.phone || '—') + '\n' +
-    '🌍 ' + esc_(data.geo) + ' | SAPI: новый';
+    '🌍 ' + esc_(data.geo) + ' | CAPI: новый';
   UrlFetchApp.fetch('https://api.telegram.org/bot' + CONFIG.TG_BOT_TOKEN + '/sendMessage', {
     method: 'post', contentType: 'application/json', muteHttpExceptions: true,
     payload: JSON.stringify({ chat_id: CONFIG.TG_CHAT_ID, text: text, parse_mode: 'HTML' })

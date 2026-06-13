@@ -95,7 +95,7 @@ module.exports = async function handler(req, res) {
     tasks.push(
       withTimeout(appendLeadViaWebapp(data), 10000)
         .then(function () {
-          sheetResult = { sapi: 'новый', duplicate: false, duplicateRows: [] };
+          sheetResult = { capi: 'новый', sapi: 'новый', duplicate: false, duplicateRows: [] };
         })
         .catch(function (err) {
           sheetError = String(err.message || err);
@@ -111,7 +111,8 @@ module.exports = async function handler(req, res) {
       sendTelegramLead(data, {
         duplicate: false,
         duplicateRows: [],
-        sapi: 'новый'
+        sapi: 'новый',
+        capi: 'новый'
       })
         .then(function () {
           telegramOk = true;
