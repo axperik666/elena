@@ -45,7 +45,24 @@
         }
         .country-btn { position: relative; }
         .hidden { display: none !important; }
-        .expert-photo { object-fit: cover; object-position: center 20%; aspect-ratio: 1; display: block; }
+        .expert-photo { object-fit: cover; object-position: center 22%; display: block; }
+        .expert-avatar-ring {
+            width: 6rem;
+            height: 6rem;
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+        .expert-photo-hero {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 22%;
+            transform: scaleX(0.84);
+            transform-origin: center center;
+        }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -92,14 +109,14 @@
             <div id="start-screen" class="fade-in space-y-5 text-center">
                 <div class="flex flex-col items-center gap-3">
                     <div class="relative shrink-0">
-                        <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-purple-600/50 pulse-ring shadow-lg shadow-purple-900/40">
-                            <img src="" alt="Эксперт" class="expert-photo w-full h-full">
+                        <div class="expert-avatar-ring border-2 border-purple-600/50 pulse-ring shadow-lg shadow-purple-900/40">
+                            <img src="" alt="Эксперт" class="expert-photo-hero">
                         </div>
                         <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-black rounded-full" title="Онлайн"></div>
                     </div>
                     <div>
                         <p class="text-white font-semibold text-sm" id="expert-name-display">Елена М.</p>
-                        <p class="text-[11px] text-purple-400">Практикующий эксперт · 18 лет опыта, несколько сотен счастливых женщин</p>
+                        <p class="text-[11px] text-purple-400">Практикующий эксперт · 18 лет опыта · Несколько сотен счастливых женщин</p>
                     </div>
                 </div>
 
@@ -434,7 +451,7 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
         // ===== Инициализация =====
         document.getElementById('expert-name-display').textContent = SITE_CONFIG.EXPERT_NAME;
         document.getElementById('form-expert-name').textContent = SITE_CONFIG.EXPERT_NAME;
-        document.querySelectorAll('.expert-photo').forEach(function (img) {
+        document.querySelectorAll('.expert-photo, .expert-photo-hero').forEach(function (img) {
             img.src = EXPERT_PHOTO;
         });
 
