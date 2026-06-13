@@ -57,6 +57,29 @@ function ensureFilter_(sheet) {
   sheet.getRange(1, 1, rows, HEADERS.length).createFilter();
 }
 
+function applySapiValidation_(sheet) {
+  var rows = Math.max(sheet.getLastRow(), 500);
+  // Снять проверку данных везде, кроме колонки SAPI (B)
+  sheet.getRange(2, 1, rows, 1).clearDataValidations();
+  sheet.getRange(2, 3, rows, HEADERS.length).clearDataValidations();
+  var rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(SAPI_STATUSES, true)
+    .setAllowInvalid(false)
+    .setHelpText('SAPI: новый, валид, квал, трэш, дубль')
+    .build();
+  sheet.getRange(2, 2, rows, 2).setDataValidation(rule);
+}
+
+/** Только SAPI — без очистки лидов. Запустить один раз в Apps Script. */
+function fixSapiDropdownOnly() {
+  var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+  if (!sheet) throw new Error('Лист «' + CONFIG.SHEET_NAME + '» не найден');
+  applySapiValidation_(sheet);
+  SpreadsheetApp.flush();
+  Logger.log('Выпадающий список только в колонке SAPI');
+}
+
 function setupSheetLayout() {
   var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.insertSheet(CONFIG.SHEET_NAME);
@@ -73,13 +96,7 @@ function setupSheetLayout() {
   sheet.setFrozenRows(1);
   sheet.setFrozenColumns(2);
   ensureFilter_(sheet);
-
-  var rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(SAPI_STATUSES, true)
-    .setAllowInvalid(true)
-    .setHelpText('Статус: новый, валид, квал, трэш, дубль')
-    .build();
-  sheet.getRange(2, 2, sheet.getMaxRows(), 2).setDataValidation(rule);
+  applySapiValidation_(sheet);
 
   sheet.setColumnWidth(1, 155);
   sheet.setColumnWidth(2, 95);
