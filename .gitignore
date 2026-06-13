@@ -7,4 +7,5 @@ node_modules
 expert-photo.b64.txt
 assets.js
 *.ps1
+!scripts/*.ps1
 .vercel-login.log

@@ -1,5 +1,6 @@
 const { SHEET_TAB } = require('../lib/leads-config');
 const { getEnv, appendLead } = require('../lib/google-sheets');
+const { appendLeadViaWebapp } = require('../lib/google-webapp');
 const { sendTelegramLead } = require('../lib/telegram');
 
 function cors(res) {
@@ -31,7 +32,7 @@ module.exports = async function handler(req, res) {
       ok: true,
       message: 'Leads API. POST JSON to save lead.',
       telegram: !!getEnv('TG_BOT_TOKEN'),
-      sheets: !!getEnv('GOOGLE_SHEET_ID')
+      sheets: !!(getEnv('GOOGLE_SHEET_ID') || getEnv('GOOGLE_SHEET_WEBAPP_URL'))
     });
   }
 
@@ -47,6 +48,7 @@ module.exports = async function handler(req, res) {
   }
 
   const spreadsheetId = getEnv('GOOGLE_SHEET_ID');
+  const webappUrl = getEnv('GOOGLE_SHEET_WEBAPP_URL');
   const tabName = getEnv('GOOGLE_SHEET_TAB') || SHEET_TAB;
   const hasTelegram = !!(getEnv('TG_BOT_TOKEN') && getEnv('TG_CHAT_ID'));
 
@@ -58,10 +60,18 @@ module.exports = async function handler(req, res) {
       sheetResult = await appendLead(spreadsheetId, tabName, data);
     } catch (err) {
       sheetError = String(err.message || err);
-      console.error('Sheet save failed:', err);
+      console.error('Sheet API save failed:', err);
+    }
+  } else if (webappUrl) {
+    try {
+      await appendLeadViaWebapp(data);
+      sheetResult = { sapi: 'новый', duplicate: false, duplicateRows: [] };
+    } catch (err) {
+      sheetError = String(err.message || err);
+      console.error('Sheet webapp save failed:', err);
     }
   } else {
-    sheetError = 'GOOGLE_SHEET_ID not configured';
+    sheetError = 'GOOGLE_SHEET_ID or GOOGLE_SHEET_WEBAPP_URL not configured';
   }
 
   let telegramOk = false;
