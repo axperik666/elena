@@ -115,7 +115,11 @@ function parseBody_(e) {
 function ensureSheet_() {
   var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME) || ss.insertSheet(CONFIG.SHEET_NAME);
-  if (sheet.getLastRow() === 0 || sheet.getRange(1, 2).getValue() !== 'SAPI') setupSheetLayout();
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  } else if (sheet.getRange(1, 2).getValue() !== 'SAPI') {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  }
   return sheet;
 }
 
