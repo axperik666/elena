@@ -39,15 +39,24 @@ module.exports = async function handler(req, res) {
 
     const tabName = getEnv('GOOGLE_SHEET_TAB') || SHEET_TAB;
 
-    await appendLead(spreadsheetId, tabName, data);
+    const result = await appendLead(spreadsheetId, tabName, data);
 
     try {
-      await sendTelegramLead(data);
+      await sendTelegramLead(data, {
+        duplicate: result.duplicate,
+        duplicateRows: result.duplicateRows,
+        sapi: result.sapi
+      });
     } catch (tgErr) {
       console.error('Telegram failed:', tgErr);
     }
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({
+      ok: true,
+      duplicate: result.duplicate,
+      duplicateRows: result.duplicateRows,
+      row: result.newRowNum
+    });
   } catch (err) {
     console.error('Lead save failed:', err);
     return res.status(500).json({ ok: false, error: String(err.message || err) });
