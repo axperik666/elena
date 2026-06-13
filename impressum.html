@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impressum</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .mystic-bg { background: radial-gradient(circle at center, #1a102f 0%, #0b0616 100%); }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2 { font-family: 'Cormorant Garamond', serif; }
+    </style>
+</head>
+<body class="mystic-bg text-gray-300 min-h-screen">
+    <header class="border-b border-purple-900/40 bg-black/30 backdrop-blur-md p-4">
+        <div class="max-w-3xl mx-auto">
+            <a href="index.html" class="text-purple-400 hover:text-purple-300 text-sm transition">&larr; Zurück zur Startseite</a>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-10 space-y-6">
+        <h1 class="text-3xl text-white font-semibold">Impressum</h1>
+        <p class="text-sm text-gray-500">Angaben gemäß § 5 TMG / Informationspflicht laut ECG (Österreich)</p>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">Anbieter</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                [Firmenname / Name des Anbieters]<br>
+                [Straße und Hausnummer]<br>
+                [PLZ Ort], [Land]
+            </p>
+            <p class="text-xs text-gray-600 italic">Bitte vor dem Start des Traffics mit echten Daten ersetzen.</p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">Kontakt</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                E-Mail: <a id="contact-email-link" href="mailto:" class="text-purple-400 hover:text-purple-300"></a>
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">Verantwortlich für den Inhalt</h2>
+            <p class="text-sm leading-relaxed text-gray-400">[Name des Verantwortlichen gemäß § 55 Abs. 2 RStV]</p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">Haftungsausschluss</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                Die angebotene telefonische Beratung dient der spirituellen und energetischen Orientierung. Sie ersetzt keine medizinische, psychologische oder rechtliche Beratung. Bei gesundheitlichen Beschwerden wenden Sie sich bitte an einen approbierten Arzt.
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">Streitschlichtung</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+                <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener" class="text-purple-400 hover:text-purple-300">https://ec.europa.eu/consumers/odr</a>.
+                Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">Datenschutz</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                Informationen zur Verarbeitung personenbezogener Daten finden Sie in unserer
+                <a href="privacy.html" class="text-purple-400 hover:text-purple-300">Datenschutzerklärung</a>.
+            </p>
+        </section>
+    </main>
+
+    <footer class="p-4 text-center text-[10px] text-gray-600 border-t border-purple-950/20 bg-black/10 mt-12">
+        &copy; 2026 Alle Rechte vorbehalten.
+    </footer>
+
+    <script src="config.js"></script>
+    <script>
+        (function () {
+            const email = SITE_CONFIG.CONTACT_EMAIL || 'kontakt@example.com';
+            const link = document.getElementById('contact-email-link');
+            link.href = 'mailto:' + email;
+            link.textContent = email;
+        })();
+    </script>
+</body>
+</html>
