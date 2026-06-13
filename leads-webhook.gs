@@ -28,12 +28,9 @@ function doPost(e) {
   try {
     var data = parseBody_(e);
     var sheet = ensureSheet_();
-    var dupRows = findDupRows_(sheet, data.phone);
     appendRow_(sheet, data);
-    var newRow = sheet.getLastRow();
-    if (dupRows.length) dupRows.push(newRow);
-    sendTelegram_(data, dupRows);
-    return json_({ ok: true, duplicate: dupRows.length > 1, duplicateRows: dupRows });
+    SpreadsheetApp.flush();
+    return json_({ ok: true });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
@@ -180,8 +177,8 @@ function json_(obj) {
 }
 
 function testLead() {
-  setupSheetLayout();
-  doPost({ postData: { contents: JSON.stringify({
+  var result = doPost({ postData: { contents: JSON.stringify({
     name: 'Тест', phone: '+49 123 456', geo: 'Германия', submittedAt: new Date().toISOString()
   }) } });
+  Logger.log(result.getContent());
 }

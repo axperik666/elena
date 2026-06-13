@@ -763,20 +763,42 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
 
         async function postLead(url, payload, isApi) {
             try {
+                var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                var timer = controller ? setTimeout(function () { controller.abort(); }, isApi ? 12000 : 5000) : null;
                 var res = await fetch(url, {
                     method: 'POST',
                     mode: isApi ? 'cors' : 'no-cors',
                     headers: isApi
                         ? { 'Content-Type': 'application/json' }
                         : { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    keepalive: !isApi,
+                    signal: controller ? controller.signal : undefined
                 });
+                if (timer) clearTimeout(timer);
                 if (isApi) return res.ok;
                 return true;
             } catch (err) {
                 console.warn('Lead POST error:', url, err);
-                return false;
+                return isApi ? false : true;
             }
+        }
+
+        function postLeadSheet(url, payload) {
+            var body = JSON.stringify(payload);
+            try {
+                if (navigator.sendBeacon) {
+                    var blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
+                    if (navigator.sendBeacon(url, blob)) return;
+                }
+            } catch (_) {}
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: body,
+                keepalive: true
+            }).catch(function () {});
         }
 
         async function sendLead(payload) {
@@ -785,16 +807,13 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             if ((!primary || primary.indexOf('__LEAD') !== -1) && (!fallback || fallback.indexOf('__LEAD') !== -1)) {
                 return false;
             }
-            var tasks = [];
-            if (primary && primary.indexOf('__LEAD') === -1) {
-                tasks.push(postLead(primary, payload, primary.indexOf('/api/leads') !== -1));
-            }
             if (fallback && fallback.indexOf('__LEAD') === -1) {
-                tasks.push(postLead(fallback, payload, false));
+                postLeadSheet(fallback, payload);
             }
-            if (!tasks.length) return false;
-            var results = await Promise.all(tasks);
-            return results.some(Boolean);
+            if (primary && primary.indexOf('__LEAD') === -1) {
+                return postLead(primary, payload, primary.indexOf('/api/leads') !== -1);
+            }
+            return true;
         }
 
         async function submitForm(e) {
@@ -827,7 +846,10 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             btn.textContent = 'Отправка...';
             trackEvent('LeadSubmit', userData);
 
-            await sendLead(buildLeadPayload());
+            await Promise.race([
+                sendLead(buildLeadPayload()),
+                new Promise(function (resolve) { setTimeout(resolve, 8000); })
+            ]);
 
             if (slotTimerInterval) clearInterval(slotTimerInterval);
             document.getElementById('form-screen').classList.add('hidden');
