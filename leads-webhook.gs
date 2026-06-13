@@ -72,7 +72,15 @@ function doGet(e) {
       return json_({ ok: false, error: String(err) });
     }
   }
-  return ContentService.createTextOutput('Webhook OK. POST only. GET ?fix=capi — обновить заголовок CAPI.').setMimeType(ContentService.MimeType.TEXT);
+  if (p && p.fix === 'phone') {
+    try {
+      fixPhoneColumnFormat();
+      return json_({ ok: true, message: 'Колонка Телефон: формат текста применён' });
+    } catch (err) {
+      return json_({ ok: false, error: String(err) });
+    }
+  }
+  return ContentService.createTextOutput('Webhook OK. POST only. GET ?fix=capi | ?fix=phone').setMimeType(ContentService.MimeType.TEXT);
 }
 
 function removeFilterSafe_(sheet) {
@@ -146,6 +154,15 @@ function fixCapiDropdownOnly() {
 /** @deprecated — используйте fixCapiDropdownOnly */
 function fixSapiDropdownOnly() {
   fixCapiDropdownOnly();
+}
+
+function fixPhoneColumnFormat() {
+  var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+  if (!sheet) throw new Error('Лист «' + CONFIG.SHEET_NAME + '» не найден');
+  sheet.getRange('E2:E').setNumberFormat('@');
+  SpreadsheetApp.flush();
+  Logger.log('Телефон: колонка E — формат текста');
 }
 
 function setupSheetLayout() {
@@ -255,19 +272,25 @@ function findDupRows_(sheet, phone) {
   return rows;
 }
 
-function sheetText_(v) {
-  if (!v) return '';
-  v = String(v);
-  if (v.charAt(0) === '+' || v.charAt(0) === '=' || v.charAt(0) === '-') return "'" + v;
-  return v;
+var PHONE_COL = 5;
+
+function sheetPhoneFormula_(phone) {
+  if (!phone) return '';
+  return '="' + String(phone).replace(/"/g, '""') + '"';
+}
+
+function setPhoneCell_(sheet, row, phone) {
+  if (!phone) return;
+  sheet.getRange(row, PHONE_COL).setFormula(sheetPhoneFormula_(phone));
 }
 
 function appendRow_(sheet, data) {
   var utm = data.utm || {};
-  sheet.appendRow([
+  var rowNum = Math.max(sheet.getLastRow(), 1) + 1;
+  sheet.getRange(rowNum, 1, rowNum, HEADERS.length).setValues([[
     data.submittedAt ? new Date(data.submittedAt) : new Date(),
     'новый',
-    data.name || '', data.email || '', sheetText_(data.phone || ''),
+    data.name || '', data.email || '', '',
     data.whatsapp ? 'Да' : 'Нет',
     data.pain || '', data.painLabel || '', data.age || '', data.geo || '',
     data.residency || '', data.belief || '', data.beliefType || '',
@@ -276,7 +299,8 @@ function appendRow_(sheet, data) {
     utm.utm_content || '', utm.utm_term || '',
     utm.fbclid || '', utm.gclid || '', utm.yclid || '',
     utm.subid || utm.sub_id || '', data.pageUrl || ''
-  ]);
+  ]]);
+  setPhoneCell_(sheet, rowNum, data.phone || '');
 }
 
 function sendTelegram_(data, dupRows) {
