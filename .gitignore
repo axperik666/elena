@@ -4,6 +4,7 @@
 .env.local
 service-account*.json
 node_modules
+public
 expert-photo.b64.txt
 assets.js
 *.ps1

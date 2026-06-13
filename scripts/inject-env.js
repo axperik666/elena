@@ -2,8 +2,27 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const indexPath = path.join(root, 'index.html');
-const configPath = path.join(root, 'config.js');
+const publicDir = path.join(root, 'public');
+
+const staticFiles = [
+  'index.html',
+  'privacy.html',
+  'impressum.html',
+  'config.js',
+  'expert-photo.jpg',
+  'expert-photo.png'
+];
+
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+
+staticFiles.forEach((file) => {
+  const src = path.join(root, file);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, path.join(publicDir, file));
+  }
+});
 
 const webapp = (process.env.GOOGLE_SHEET_WEBAPP_URL || '').trim();
 const primary = '/api/leads';
@@ -17,8 +36,9 @@ function patch(filePath) {
   fs.writeFileSync(filePath, text, 'utf8');
 }
 
-patch(indexPath);
-patch(configPath);
+patch(path.join(publicDir, 'index.html'));
+patch(path.join(publicDir, 'config.js'));
 
+console.log('Built public/ for Vercel');
 console.log('Webhook primary:', primary);
 console.log('Webhook fallback:', fallback || '(none)');

@@ -3,6 +3,7 @@
   "trailingSlash": false,
   "buildCommand": "node scripts/inject-env.js",
   "installCommand": "npm install",
+  "outputDirectory": "public",
   "functions": {
     "api/**/*.js": {
       "maxDuration": 15
