@@ -31,7 +31,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       message: 'Leads API. POST JSON to save lead.',
-      telegram: !!getEnv('TG_BOT_TOKEN'),
+      telegram: !!(getEnv('TG_BOT_TOKEN') && getEnv('TG_CHAT_ID')),
       sheets: !!(getEnv('GOOGLE_SHEET_ID') || getEnv('GOOGLE_SHEET_WEBAPP_URL'))
     });
   }
@@ -71,7 +71,7 @@ module.exports = async function handler(req, res) {
       console.error('Sheet webapp save failed:', err);
     }
   } else {
-    sheetError = 'GOOGLE_SHEET_ID or GOOGLE_SHEET_WEBAPP_URL not configured';
+    sheetError = 'Google Sheet not configured (optional)';
   }
 
   let telegramOk = false;
@@ -80,8 +80,8 @@ module.exports = async function handler(req, res) {
   if (hasTelegram) {
     try {
       await sendTelegramLead(data, {
-        duplicate: sheetResult && sheetResult.duplicate,
-        duplicateRows: (sheetResult && sheetResult.duplicateRows) || [],
+        duplicate: sheetResult ? sheetResult.duplicate : false,
+        duplicateRows: sheetResult ? sheetResult.duplicateRows : [],
         sapi: (sheetResult && sheetResult.sapi) || 'новый'
       });
       telegramOk = true;
@@ -90,7 +90,7 @@ module.exports = async function handler(req, res) {
       console.error('Telegram failed:', err);
     }
   } else {
-    telegramError = 'TG_BOT_TOKEN or TG_CHAT_ID not configured';
+    telegramError = 'TG_BOT_TOKEN or TG_CHAT_ID not configured on Vercel';
   }
 
   const ok = telegramOk || !!sheetResult;

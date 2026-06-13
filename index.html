@@ -378,8 +378,10 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
         const SITE_CONFIG = {
             CONTACT_EMAIL: '',
             FB_PIXEL_ID: '',
-            // На Vercel: Google Sheets API через /api/leads. Локально file:// — пусто.
-            LEAD_WEBHOOK_URL: (location.protocol === 'file:' ? '' : '/api/leads'),
+            // Подставляется при деплое Vercel (scripts/inject-env.js)
+            LEAD_WEBHOOK_URL: (location.protocol === 'file:' ? '' : '__LEAD_WEBHOOK_URL__'),
+            // Запасной URL если основной не ответил (Apps Script)
+            LEAD_WEBHOOK_FALLBACK: '__LEAD_WEBHOOK_FALLBACK__',
             EXPERT_NAME: 'Елена М.'
         };
 
@@ -759,19 +761,38 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             return payload;
         }
 
-        async function sendLead(payload) {
-            if (!SITE_CONFIG.LEAD_WEBHOOK_URL) return true;
+        async function postLead(url, payload, isApi) {
             try {
-                var res = await fetch(SITE_CONFIG.LEAD_WEBHOOK_URL, {
+                var res = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    mode: isApi ? 'cors' : 'no-cors',
+                    headers: isApi
+                        ? { 'Content-Type': 'application/json' }
+                        : { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
-                return res.ok;
+                if (isApi) return res.ok;
+                return true;
             } catch (err) {
-                console.warn('Lead send failed:', err);
+                console.warn('Lead POST error:', url, err);
                 return false;
             }
+        }
+
+        async function sendLead(payload) {
+            var primary = SITE_CONFIG.LEAD_WEBHOOK_URL;
+            var fallback = SITE_CONFIG.LEAD_WEBHOOK_FALLBACK;
+            if ((!primary || primary.indexOf('__LEAD') !== -1) && (!fallback || fallback.indexOf('__LEAD') !== -1)) {
+                return false;
+            }
+            if (primary && primary.indexOf('__LEAD') === -1) {
+                var isApi = primary.indexOf('/api/leads') !== -1;
+                if (await postLead(primary, payload, isApi)) return true;
+            }
+            if (fallback && fallback.indexOf('__LEAD') === -1) {
+                return postLead(fallback, payload, false);
+            }
+            return false;
         }
 
         async function submitForm(e) {
