@@ -1,7 +1,12 @@
 const { SHEET_TAB } = require('../lib/leads-config');
-const { getEnv, appendLead } = require('../lib/google-sheets');
+const { getEnvAny } = require('../lib/get-env');
+const { appendLead } = require('../lib/google-sheets');
 const { appendLeadViaWebapp } = require('../lib/google-webapp');
 const { sendTelegramLead } = require('../lib/telegram');
+
+function getEnv(name) {
+  return getEnvAny(name);
+}
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,11 +33,13 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
+    const hasTg = !!(getEnvAny('TG_BOT_TOKEN') && getEnvAny('TG_CHAT_ID'));
     return res.status(200).json({
       ok: true,
       message: 'Leads API. POST JSON to save lead.',
-      telegram: !!(getEnv('TG_BOT_TOKEN') && getEnv('TG_CHAT_ID')),
-      sheets: !!(getEnv('GOOGLE_SHEET_ID') || getEnv('GOOGLE_SHEET_WEBAPP_URL'))
+      telegram: hasTg,
+      sheets: !!(getEnvAny('GOOGLE_SHEET_ID') || getEnvAny('GOOGLE_SHEET_WEBAPP_URL')),
+      hint: hasTg ? null : 'Добавьте TG_BOT_TOKEN и TG_CHAT_ID в Vercel → Settings → Environment Variables → Redeploy'
     });
   }
 
@@ -47,10 +54,10 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ ok: false, error: String(err.message || err) });
   }
 
-  const spreadsheetId = getEnv('GOOGLE_SHEET_ID');
-  const webappUrl = getEnv('GOOGLE_SHEET_WEBAPP_URL');
+  const spreadsheetId = getEnvAny('GOOGLE_SHEET_ID');
+  const webappUrl = getEnvAny('GOOGLE_SHEET_WEBAPP_URL');
   const tabName = getEnv('GOOGLE_SHEET_TAB') || SHEET_TAB;
-  const hasTelegram = !!(getEnv('TG_BOT_TOKEN') && getEnv('TG_CHAT_ID'));
+  const hasTelegram = !!(getEnvAny('TG_BOT_TOKEN') && getEnvAny('TG_CHAT_ID'));
 
   let sheetResult = null;
   let sheetError = null;
