@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Официальная Экспресс-Диагностика</title>
+    <meta name="description" content="Пройдите короткий опрос и получите бесплатную телефонную экспресс-диагностику от практикующего эксперта.">
+    <meta property="og:title" content="Экспресс-Диагностика — личный приём эксперта">
+    <meta property="og:description" content="Бесплатная телефонная диагностика. Пройдите опрос и зафиксируйте место на звонок.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%237c3aed'/><circle cx='50' cy='50' r='15' fill='%23c4b5fd'/></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, .font-serif { font-family: 'Cormorant Garamond', serif; }
+        .mystic-bg {
+            background: radial-gradient(ellipse at 50% 0%, #2d1b4e 0%, #1a102f 40%, #0b0616 100%);
+            position: relative; overflow-x: hidden;
+        }
+        .mystic-bg::before {
+            content: ''; position: fixed; inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+                radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.25) 0%, transparent 100%),
+                radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.15) 0%, transparent 100%);
+            pointer-events: none; z-index: 0;
+        }
+        .glow-effect { box-shadow: 0 0 40px rgba(139,92,246,0.15), 0 0 80px rgba(139,92,246,0.05); }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .pulse-ring { animation: pulseRing 2s ease-in-out infinite; }
+        @keyframes pulseRing {
+            0%,100% { box-shadow: 0 0 0 0 rgba(139,92,246,0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(139,92,246,0); }
+        }
+        .error-msg { color: #f87171; font-size: 0.75rem; margin-top: 0.25rem; }
+        .input-error { border-color: #ef4444 !important; }
+        .geo-suggested { border-color: rgba(139,92,246,0.8) !important; box-shadow: 0 0 12px rgba(139,92,246,0.25); }
+        .geo-suggested::after {
+            content: 'Ваш регион'; position: absolute; top: -8px; right: 8px;
+            font-size: 9px; background: #7c3aed; color: white; padding: 1px 6px; border-radius: 4px;
+        }
+        .country-btn { position: relative; }
+        .hidden { display: none !important; }
+        .expert-photo { object-fit: cover; object-position: center; }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .reviews-carousel { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+        .review-content { transition: opacity 0.25s ease, transform 0.25s ease; }
+        .review-content.is-changing { opacity: 0; transform: translateX(12px); }
+        .review-content.from-left { transform: translateX(-12px); }
+        .review-arrow {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            background: rgba(88, 28, 135, 0.25);
+            color: #c4b5fd;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .review-arrow:hover { background: rgba(88, 28, 135, 0.45); border-color: rgba(139, 92, 246, 0.6); }
+        .review-dot { width: 6px; height: 6px; border-radius: 9999px; background: rgba(139, 92, 246, 0.25); transition: background 0.2s, transform 0.2s; }
+        .review-dot.active { background: #a78bfa; transform: scale(1.2); }
+    </style>
+</head>
+<body class="mystic-bg text-gray-200 min-h-screen flex flex-col justify-between">
+
+    <header class="relative z-10 border-b border-purple-900/40 bg-black/30 backdrop-blur-md p-4 text-center">
+        <div class="text-purple-400 font-serif tracking-widest text-xs uppercase">Личный прием эксперта</div>
+        <div class="text-[10px] text-gray-600 mt-1">Конфиденциально · Бесплатно · По телефону</div>
+    </header>
+
+    <main class="relative z-10 flex-grow flex items-center justify-center px-4 py-8">
+        <div class="max-w-xl w-full bg-black/50 border border-purple-900/30 rounded-2xl p-6 md:p-8 backdrop-blur-lg glow-effect">
+
+            <!-- СТАРТ -->
+            <div id="start-screen" class="fade-in space-y-5 text-center">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="relative">
+                        <img src="" alt="Эксперт" class="expert-photo w-24 h-24 rounded-full object-cover border-2 border-purple-600/50 pulse-ring shadow-lg shadow-purple-900/40">
+                        <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-black rounded-full" title="Онлайн"></div>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold text-sm" id="expert-name-display">Елена М.</p>
+                        <p class="text-[11px] text-purple-400">Практикующий эксперт · 18 лет опыта</p>
+                    </div>
+                </div>
+
+                <h1 class="text-2xl md:text-3xl font-serif text-white leading-tight">
+                    Сильнейший удар судьбы или чужая зависть?<br>
+                    <span class="text-purple-400">Узнайте, что на самом деле разрушает вашу жизнь</span>
+                </h1>
+                <p class="text-gray-400 text-sm md:text-base leading-relaxed">
+                    Пройдите короткий опрос, чтобы зафиксировать право на
+                    <span class="text-purple-300 font-semibold">бесплатную телефонную экспресс-диагностику</span>.
+                    Определим скрытые причины недугов, защитим детей от семейного рока и снимем чужой негатив.
+                </p>
+
+                <div id="reviews-carousel" class="reviews-carousel relative flex items-center gap-2">
+                    <button type="button" class="review-arrow" onclick="reviewPrev()" aria-label="Предыдущий отзыв">&#8249;</button>
+                    <div class="flex-1 min-w-0 bg-purple-950/30 border border-purple-900/30 rounded-xl p-3 text-left overflow-hidden">
+                        <div id="review-content" class="review-content">
+                            <p class="text-xs text-gray-400 italic leading-relaxed" id="review-text"></p>
+                            <p class="text-[10px] text-purple-500 mt-2" id="review-author"></p>
+                        </div>
+                    </div>
+                    <button type="button" class="review-arrow" onclick="reviewNext()" aria-label="Следующий отзыв">&#8250;</button>
+                </div>
+                <div id="review-dots" class="flex justify-center gap-1.5"></div>
+
+                <p class="text-xs text-purple-400/80">
+                    <span class="text-white font-semibold" id="stats-count">847</span> диагностик проведено в этом месяце
+                </p>
+
+                <div class="flex flex-wrap justify-center gap-2 text-[11px] text-gray-500">
+                    <span class="bg-purple-950/40 border border-purple-900/30 px-3 py-1 rounded-full">2 минуты</span>
+                    <span class="bg-purple-950/40 border border-purple-900/30 px-3 py-1 rounded-full">Звонок в ближайшее время</span>
+                    <span class="bg-purple-950/40 border border-purple-900/30 px-3 py-1 rounded-full">Анонимно</span>
+                </div>
+
+                <button onclick="startQuiz()" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-semibold py-4 px-6 rounded-xl transition duration-300 cursor-pointer shadow-lg shadow-purple-900/50 uppercase tracking-wider text-sm">
+                    Пройти опрос и записаться на звонок
+                </button>
+                <p class="text-[10px] text-gray-600">
+                    Нажимая кнопку, вы соглашаетесь с
+                    <a href="privacy.html" class="text-purple-500 hover:text-purple-400 underline">политикой конфиденциальности</a>
+                </p>
+            </div>
+
+            <!-- КВИЗ -->
+            <div id="quiz-screen" class="hidden space-y-5">
+                <div class="flex justify-between items-center text-xs text-gray-500">
+                    <button id="back-btn" onclick="goBack()" class="hidden text-purple-400 hover:text-purple-300 transition cursor-pointer">&larr; Назад</button>
+                    <span id="back-spacer"></span>
+                    <span>Вопрос <span id="step-counter">1</span> из 7</span>
+                    <span id="progress-text">14%</span>
+                </div>
+                <div class="w-full bg-purple-950/50 rounded-full h-1.5">
+                    <div id="progress-bar" class="bg-gradient-to-r from-purple-600 to-purple-400 h-1.5 rounded-full transition-all duration-500" style="width:14%"></div>
+                </div>
+
+                <div id="step-1" class="quiz-step fade-in space-y-4">
+                    <h2 class="text-xl font-serif text-white">Как к вам обращаться во время личного разбора?</h2>
+                    <form onsubmit="nextStep(1); return false;" class="space-y-4">
+                        <div>
+                            <input type="text" id="user-name" placeholder="Введите ваше имя" autocomplete="given-name"
+                                class="w-full bg-purple-950/30 border border-purple-800/50 rounded-xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition">
+                            <p id="error-name" class="error-msg hidden"></p>
+                        </div>
+                        <button type="submit" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition cursor-pointer">Далее</button>
+                    </form>
+                </div>
+
+                <div id="step-2" class="quiz-step hidden fade-in space-y-4">
+                    <h2 class="text-xl font-serif text-white"><span class="username-place text-purple-400"></span>, какая проблема в вашей жизни сейчас находится в критическом состоянии?</h2>
+                    <div class="space-y-2">
+                        <button onclick="selectPain('Здоровье')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">
+                            Здоровье и жизненные силы
+                            <span class="text-gray-500 text-xs block mt-1">Врачи не находят причин</span>
+                        </button>
+                        <button onclick="selectPain('Семья')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">
+                            Дети и семья
+                            <span class="text-gray-500 text-xs block mt-1">Отношения рушатся, дети отдаляются</span>
+                        </button>
+                        <button onclick="selectPain('Порча')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">
+                            Сглаз, порча, проклятие
+                            <span class="text-gray-500 text-xs block mt-1">Ощущаю чужой негатив</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="step-3" class="quiz-step hidden fade-in space-y-4">
+                    <h2 class="text-xl font-serif text-white">Укажите ваш точный возраст:</h2>
+                    <p class="text-xs text-gray-500">Необходимо для расчёта планетарных циклов и силы родовых связей.</p>
+                    <div>
+                        <input type="number" id="user-age" min="35" max="80" placeholder="Например: 45"
+                            class="w-full bg-purple-950/30 border border-purple-800/50 rounded-xl p-4 text-white focus:outline-none focus:border-purple-500 transition">
+                        <p id="error-age" class="error-msg hidden"></p>
+                    </div>
+                    <button onclick="nextStep(3)" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition cursor-pointer">Далее</button>
+                </div>
+
+                <div id="step-4" class="quiz-step hidden fade-in space-y-4">
+                    <h2 class="text-xl font-serif text-white">В какой стране вы сейчас находитесь?</h2>
+                    <p id="geo-hint" class="text-xs text-purple-400/70 hidden"></p>
+                    <div class="grid grid-cols-2 gap-2" id="country-grid">
+                        <button data-code="DE" onclick="selectGeo('Германия', '+49')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Германия</button>
+                        <button data-code="IL" onclick="selectGeo('Израиль', '+972')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Израиль</button>
+                        <button data-code="AT" onclick="selectGeo('Австрия', '+43')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Австрия</button>
+                        <button data-code="FR" onclick="selectGeo('Франция', '+33')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Франция</button>
+                        <button data-code="IT" onclick="selectGeo('Италия', '+39')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Италия</button>
+                        <button data-code="BE" onclick="selectGeo('Бельгия', '+32')" class="country-btn bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition text-center cursor-pointer text-white">Бельгия</button>
+                    </div>
+                </div>
+
+                <div id="step-5" class="quiz-step hidden fade-in space-y-4">
+                    <h2 class="text-xl font-serif text-white" id="step-5-question">Как давно вы живёте <span class="text-purple-400" id="residency-country">в этой стране</span>?</h2>
+                    <div class="space-y-2">
+                        <button onclick="selectResidency('Проживаю уже более 5 лет')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">Проживаю уже более 5 лет</button>
+                        <button onclick="selectResidency('Проживаю тут меньше 5 лет')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">Проживаю тут меньше 5 лет</button>
+                    </div>
+                </div>
+
+                <div id="step-6" class="quiz-step hidden fade-in space-y-4">
+                    <h2 class="text-xl font-serif text-white">Верите ли вы, что чужая зависть может навредить?</h2>
+                    <p class="text-xs text-gray-500">Ответ поможет эксперту говорить с вами на понятном языке. Ответьте как чувствуете.</p>
+                    <div class="space-y-2">
+                        <button type="button" onclick="selectBelief('Верит', 'believer')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">
+                            Да, верю — зависть может навредить
+                        </button>
+                        <button type="button" onclick="selectBelief('Скорее верит', 'open')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">
+                            Скорее да — такое возможно
+                        </button>
+                        <button type="button" onclick="selectBelief('Не знаю', 'unsure')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">
+                            Не знаю
+                        </button>
+                        <button type="button" onclick="selectBelief('Нет', 'skeptic')" class="w-full text-left bg-purple-950/20 hover:bg-purple-900/40 hover:border-purple-600/50 border border-purple-900/40 p-4 rounded-xl transition cursor-pointer">
+                            Нет
+                        </button>
+                    </div>
+                </div>
+
+                <div id="step-7" class="quiz-step hidden fade-in space-y-4">
+                    <h2 class="text-xl font-serif text-white">Диагностика проводится экспертом <span class="text-purple-400 font-semibold">строго лично по телефону</span>. Вы готовы ответить на звонок?</h2>
+                    <div class="space-y-2">
+                        <button type="button" onclick="showLoading()" class="w-full text-center bg-purple-700 hover:bg-purple-600 text-white font-semibold p-4 rounded-xl transition cursor-pointer shadow-lg shadow-purple-900/30">Да, мне нужна помощь, я жду звонка</button>
+                        <button type="button" onclick="rejectUser('curious')" class="w-full text-center bg-transparent hover:bg-red-950/20 border border-red-900/40 text-gray-400 p-4 rounded-xl transition cursor-pointer">Нет, я не готов(а) говорить / из любопытства</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ЛОАДЕР -->
+            <div id="loading-screen" class="hidden text-center space-y-6 py-8 fade-in">
+                <div class="relative w-28 h-28 mx-auto shrink-0">
+                    <div class="absolute inset-0 animate-spin rounded-full border-2 border-purple-900/30 border-t-purple-500"></div>
+                    <div class="absolute inset-[5px] rounded-full overflow-hidden bg-purple-950 border border-purple-700/30">
+                        <img src="" alt="" class="expert-photo block w-full h-full object-cover object-center">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-lg font-serif text-white" id="loading-text">Сопоставление данных...</p>
+                    <p class="text-xs text-gray-500" id="loading-sub">Анализ биополя региона...</p>
+                </div>
+            </div>
+
+            <!-- ФОРМА -->
+            <div id="form-screen" class="hidden fade-in space-y-5">
+                <div class="flex items-center gap-3 bg-purple-950/20 border border-purple-900/30 rounded-xl p-3">
+                    <img src="" alt="" class="expert-photo w-12 h-12 rounded-full object-cover border border-purple-600/40 shrink-0">
+                    <div class="text-left">
+                        <p class="text-sm text-white font-semibold" id="form-expert-name">Елена М.</p>
+                        <p class="text-[11px] text-green-400">● Свободна для звонка</p>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <h2 class="text-xl font-serif text-white"><span class="username-place text-purple-400"></span>, ваш профиль передан мастеру</h2>
+                    <p class="text-sm text-gray-400 mt-1">Эксперт свяжется с вами <span class="text-purple-300 font-semibold">в ближайшее время</span> — днём или вечером, когда будет удобно.</p>
+                </div>
+
+                <!-- Резюме профиля -->
+                <div id="profile-summary" class="bg-black/30 border border-purple-900/40 rounded-xl p-4 space-y-2 text-sm">
+                    <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-2">Ваш профиль диагностики</p>
+                    <div class="flex justify-between"><span class="text-gray-500">Имя</span><span class="text-white" id="sum-name">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Проблема</span><span class="text-white text-right max-w-[60%]" id="sum-pain">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Возраст</span><span class="text-white" id="sum-age">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Страна</span><span class="text-white" id="sum-geo">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Проживание</span><span class="text-white" id="sum-residency">—</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Отношение</span><span class="text-white text-right max-w-[55%]" id="sum-belief">—</span></div>
+                </div>
+
+                <!-- Дефицит -->
+                <div class="bg-red-950/20 border border-red-900/30 rounded-xl p-3 flex justify-between items-center text-sm">
+                    <div class="text-left">
+                        <p class="text-red-300 font-semibold text-xs">Осталось <span id="slots-left">3</span> бесплатных мест</p>
+                        <p class="text-[10px] text-gray-500 mt-0.5">на сегодня в вашем регионе</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-gray-500">Бронь истекает через</p>
+                        <p class="text-lg font-mono text-red-300 font-bold" id="slot-timer">09:59</p>
+                    </div>
+                </div>
+
+                <form id="lead-form" onsubmit="submitForm(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Ваш номер телефона</label>
+                        <input type="tel" id="phone-input" required inputmode="tel" autocomplete="tel"
+                            class="w-full bg-purple-950/30 border border-purple-800/50 rounded-xl p-4 text-white text-lg font-semibold tracking-wider focus:outline-none focus:border-purple-500 transition">
+                        <p id="error-phone" class="error-msg hidden"></p>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Email <span class="text-gray-600">(необязательно)</span></label>
+                        <input type="email" id="email-input" autocomplete="email" placeholder="example@mail.com"
+                            class="w-full bg-purple-950/30 border border-purple-800/50 rounded-xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition">
+                        <p id="error-email" class="error-msg hidden"></p>
+                    </div>
+                    <div class="flex items-start space-x-2 py-1">
+                        <input type="checkbox" id="whatsapp-check" checked class="w-4 h-4 accent-purple-600 mt-0.5">
+                        <label for="whatsapp-check" class="text-xs text-gray-400 cursor-pointer">Номер привязан к WhatsApp</label>
+                    </div>
+                    <button type="submit" id="submit-btn" class="w-full bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white font-semibold py-4 rounded-xl transition shadow-lg shadow-purple-900/50 uppercase tracking-wider text-sm cursor-pointer">
+                        Подтвердить запись и ожидать звонка
+                    </button>
+                </form>
+            </div>
+
+            <!-- ЗАПИСЬ (менее 5 лет) -->
+            <div id="booked-screen" class="hidden fade-in text-center space-y-6 py-6">
+                <div class="w-16 h-16 bg-green-900/30 border border-green-500/50 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-900/30">
+                    <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div class="bg-green-950/20 border border-green-500/30 rounded-xl p-5 space-y-2">
+                    <h2 class="text-xl font-serif text-white">Вы записаны на консультацию</h2>
+                    <p class="text-sm text-green-300/90">Ожидайте звонка</p>
+                </div>
+                <p class="text-xs text-gray-500 max-w-xs mx-auto">
+                    Эксперт свяжется с вами в ближайшее время. Пожалуйста, держите телефон под рукой.
+                </p>
+            </div>
+
+            <!-- СПАСИБО -->
+            <div id="thank-you-screen" class="hidden fade-in text-center space-y-6 py-6">
+                <div class="w-16 h-16 bg-green-900/30 border border-green-500/50 rounded-full flex items-center justify-center mx-auto">
+                    <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h2 class="text-2xl font-serif text-white">Запись успешно подтверждена!</h2>
+                <p class="text-sm text-gray-400 max-w-sm mx-auto">
+                    Не выпускайте телефон из рук. Эксперт свяжется с вами в ближайшее время. Звонок может быть с международного номера.
+                </p>
+            </div>
+
+            <!-- ОТКАЗ -->
+            <div id="reject-screen" class="hidden fade-in text-center space-y-4 py-8">
+                <div class="w-14 h-14 mx-auto rounded-full bg-gray-900/50 border border-gray-700/40 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+                <p class="text-lg font-serif text-gray-400" id="reject-message"></p>
+                <p class="text-xs text-gray-600">Приём временно приостановлен.</p>
+                <button type="button" onclick="returnFromReject()" class="mt-4 w-full bg-purple-950/40 hover:bg-purple-900/50 border border-purple-700/50 text-purple-300 font-semibold py-3 px-6 rounded-xl transition cursor-pointer">
+                    ← Я передумал(а), вернуться назад
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="relative z-10 p-4 text-center text-[10px] text-gray-600 border-t border-purple-950/20 bg-black/10 space-y-1">
+        <p>&copy; 2026 Все права защищены. Диагностика носит индивидуальный характер.</p>
+        <p class="text-gray-700 max-w-lg mx-auto leading-relaxed">
+            Не является медицинской, психологической или юридической консультацией. При симптомах заболевания обратитесь к врачу.
+        </p>
+        <p class="mt-1 space-x-3">
+            <a href="privacy.html" class="text-purple-500 hover:text-purple-400 underline">Конфиденциальность</a>
+            <a href="impressum.html" class="text-purple-500 hover:text-purple-400 underline">Impressum</a>
+        </p>
+    </footer>
+
+    <script>// Фото эксперта встроено в файл — работает без expert-photo.png
+const EXPERT_PHOTO = 'data:image/jpeg;base64,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';
+</script>
+    <script>
+        // ===== НАСТРОЙКИ (всё в одном файле, config.js не нужен) =====
+        const SITE_CONFIG = {
+            CONTACT_EMAIL: '',
+            FB_PIXEL_ID: '',
+            // Подставляется при деплое Vercel (scripts/inject-env.js)
+            LEAD_WEBHOOK_URL: (location.protocol === 'file:' ? '' : '/api/leads'),
+            // Запасной URL если основной не ответил (Apps Script)
+            LEAD_WEBHOOK_FALLBACK: '',
+            EXPERT_NAME: 'Елена М.'
+        };
+
+        // ===== Аналитика (Facebook Pixel) =====
+        (function initPixel() {
+            if (!SITE_CONFIG.FB_PIXEL_ID) return;
+            !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+            n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', SITE_CONFIG.FB_PIXEL_ID);
+            fbq('track', 'PageView');
+        })();
+
+        function trackEvent(name, params) {
+            if (typeof fbq === 'function') fbq('trackCustom', name, params || {});
+        }
+
+        // ===== Состояние =====
+        const TOTAL_STEPS = 7;
+        let currentStep = 1;
+        let slotTimerInterval = null;
+        const GEO_IN_COUNTRY = {
+            'Германия': 'в Германии',
+            'Израиль': 'в Израиле',
+            'Австрия': 'в Австрии',
+            'Франция': 'во Франции',
+            'Италия': 'в Италии',
+            'Бельгия': 'в Бельгии'
+        };
+        const PAIN_LABELS = {
+            'Здоровье': 'Здоровье и жизненные силы',
+            'Семья': 'Дети и семья',
+            'Порча': 'Сглаз, порча, проклятие'
+        };
+        const COUNTRY_MAP = {
+            DE: ['Германия', '+49'], IL: ['Израиль', '+972'], AT: ['Австрия', '+43'],
+            FR: ['Франция', '+33'], IT: ['Италия', '+39'], BE: ['Бельгия', '+32']
+        };
+        const PHONE_MIN = { '+49': 12, '+972': 11, '+43': 11, '+33': 11, '+39': 11, '+32': 11 };
+
+        let userData = { name:'', pain:'', age:'', geo:'', residency:'', belief:'', beliefType:'', phonePrefix:'', phone:'', email:'', whatsapp:true, utm:{} };
+        let rejectReturnStep = 7;
+
+        // ===== Инициализация =====
+        document.getElementById('expert-name-display').textContent = SITE_CONFIG.EXPERT_NAME;
+        document.getElementById('form-expert-name').textContent = SITE_CONFIG.EXPERT_NAME;
+        document.querySelectorAll('.expert-photo').forEach(function (img) {
+            img.src = EXPERT_PHOTO;
+        });
+
+        // ===== Карусель отзывов =====
+        var REVIEWS = [
+            { text: 'После звонка наконец поняла, откуда тянется эта тяжесть. Эксперт назвала вещи, о которых я молчала годами. Уже через неделю стало легче дышать.', author: 'Наталья, 52 года, Германия' },
+            { text: 'Думала, что просто устала. На диагностике объяснили про родовую программу — многое встало на место. Муж снова стал разговаривать со мной нормально.', author: 'Ирина, 47 лет, Израиль' },
+            { text: 'Врачи ничего не находили, а сил не было вообще. Эксперт сразу сказала, где слабое место. Сейчас сплю нормально впервые за полгода.', author: 'Ольга, 58 лет, Австрия' },
+            { text: 'Боялась, что это всё «ерунда». Но разговор был спокойный, без запугивания. Помогло понять, почему дочь отдалилась — и что с этим делать.', author: 'Марина, 44 года, Франция' },
+            { text: 'Чувствовала чужой негатив, но стыдилась кому-то говорить. Здесь меня выслушали без осуждения. После консультации стало спокойнее в доме.', author: 'Светлана, 61 год, Италия' },
+            { text: 'Записалась из отчаяния — дела шли только хуже. Эксперт объяснила простым языком, что происходит. Через месяц ситуация на работе изменилась.', author: 'Анна, 49 лет, Бельгия' },
+            { text: 'Мужчина ушёл внезапно, я не понимала почему. На разборе назвали настоящую причину — не ту, о которой я думала. Это дало силы двигаться дальше.', author: 'Елена, 55 лет, Германия' },
+            { text: 'Сын часто болел, врачи разводили руками. После диагностики сделали то, что советовали — стало заметно легче. Благодарна от всего сердца.', author: 'Людмила, 43 года, Израиль' },
+            { text: 'Не верила в такие вещи, но подруга уговорила. Удивилась, насколько точно описали мою ситуацию. Теперь верю — есть то, что глазами не видно.', author: 'Тамара, 56 лет, Австрия' },
+            { text: 'После переезда всё рушилось: здоровье, деньги, отношения. Эксперт связала это с энергетикой нового места. Советы помогли — жизнь постепенно налаживается.', author: 'Виктория, 51 год, Франция' }
+        ];
+        var reviewIndex = 0;
+        var reviewTouchStartX = 0;
+        var reviewTouchStartY = 0;
+
+        function renderReview(index, direction) {
+            var r = REVIEWS[index];
+            var content = document.getElementById('review-content');
+            var textEl = document.getElementById('review-text');
+            var authorEl = document.getElementById('review-author');
+            content.classList.add('is-changing');
+            if (direction === 'prev') content.classList.add('from-left');
+            setTimeout(function () {
+                textEl.textContent = '\u00AB' + r.text + '\u00BB';
+                authorEl.textContent = '\u2014 ' + r.author;
+                content.classList.remove('from-left');
+                content.classList.remove('is-changing');
+            }, 180);
+            document.querySelectorAll('.review-dot').forEach(function (dot, i) {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        function reviewNext() {
+            reviewIndex = (reviewIndex + 1) % REVIEWS.length;
+            renderReview(reviewIndex, 'next');
+        }
+
+        function reviewPrev() {
+            reviewIndex = (reviewIndex - 1 + REVIEWS.length) % REVIEWS.length;
+            renderReview(reviewIndex, 'prev');
+        }
+
+        (function initReviewsCarousel() {
+            var dotsWrap = document.getElementById('review-dots');
+            REVIEWS.forEach(function (_, i) {
+                var dot = document.createElement('span');
+                dot.className = 'review-dot' + (i === 0 ? ' active' : '');
+                dotsWrap.appendChild(dot);
+            });
+            renderReview(0);
+
+            var carousel = document.getElementById('reviews-carousel');
+            carousel.addEventListener('touchstart', function (e) {
+                reviewTouchStartX = e.changedTouches[0].screenX;
+                reviewTouchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+            carousel.addEventListener('touchend', function (e) {
+                var dx = e.changedTouches[0].screenX - reviewTouchStartX;
+                var dy = e.changedTouches[0].screenY - reviewTouchStartY;
+                if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+                if (dx < 0) reviewNext();
+                else reviewPrev();
+            }, { passive: true });
+        })();
+
+        (function captureUtm() {
+            new URLSearchParams(location.search).forEach(function (v, k) {
+                if (k.indexOf('utm_') === 0 || k === 'fbclid' || k === 'gclid' || k === 'yclid' || k === 'subid' || k === 'sub_id') {
+                    userData.utm[k] = v;
+                }
+            });
+        })();
+
+        (function initStats() {
+            var base = 820 + Math.floor(Math.random() * 40);
+            document.getElementById('stats-count').textContent = base;
+            try {
+                var slots = sessionStorage.getItem('slots') || String(2 + Math.floor(Math.random() * 3));
+                sessionStorage.setItem('slots', slots);
+                document.getElementById('slots-left').textContent = slots;
+            } catch (e) {
+                document.getElementById('slots-left').textContent = '3';
+            }
+        })();
+
+        // ===== Geo-определение =====
+        (async function detectCountry() {
+            try {
+                var controller = new AbortController();
+                var tid = setTimeout(function () { controller.abort(); }, 3000);
+                var res = await fetch('https://ipapi.co/country_code/', { signal: controller.signal });
+                clearTimeout(tid);
+                var code = (await res.text()).trim().toUpperCase();
+                if (COUNTRY_MAP[code]) {
+                    var btn = document.querySelector('[data-code="' + code + '"]');
+                    if (btn) btn.classList.add('geo-suggested');
+                    var hint = document.getElementById('geo-hint');
+                    hint.textContent = 'Мы определили ваш регион — выберите страну или укажите другую';
+                    hint.classList.remove('hidden');
+                }
+            } catch (e) {}
+        })();
+
+        // ===== Enter на шаге возраста =====
+        document.getElementById('user-age').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); nextStep(3); }
+        });
+
+        // ===== Маска телефона =====
+        document.getElementById('phone-input').addEventListener('input', function () {
+            const prefix = userData.phonePrefix;
+            if (!prefix) return;
+            let digits = this.value.replace(/\D/g, '');
+            const prefixDigits = prefix.replace('+', '');
+            if (!digits.startsWith(prefixDigits)) digits = prefixDigits + digits.replace(new RegExp('^' + prefixDigits), '');
+            const local = digits.slice(prefixDigits.length);
+            const formatted = prefix + ' ' + local.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+            this.value = formatted.trim();
+        });
+
+        // ===== Helpers =====
+        function capitalizeName(name) {
+            name = name.trim();
+            if (!name) return name;
+            return name.charAt(0).toUpperCase() + name.slice(1);
+        }
+
+        function showError(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.classList.remove('hidden'); }
+        function hideError(id) { const el = document.getElementById(id); el.classList.add('hidden'); el.textContent = ''; }
+
+        function updateBackButton() {
+            document.getElementById('back-btn').classList.toggle('hidden', currentStep <= 1);
+        }
+
+        function updateProgress() {
+            const p = Math.round((currentStep / TOTAL_STEPS) * 100);
+            document.getElementById('progress-bar').style.width = p + '%';
+            document.getElementById('progress-text').textContent = p + '%';
+            document.getElementById('step-counter').textContent = currentStep;
+            updateBackButton();
+        }
+
+        function goBack() {
+            if (currentStep <= 1) return;
+            document.getElementById('step-' + currentStep).classList.add('hidden');
+            currentStep--;
+            document.getElementById('step-' + currentStep).classList.remove('hidden');
+            if (currentStep === 5) updateResidencyQuestion();
+            updateProgress();
+        }
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            trackEvent('QuizStart');
+        }
+
+        function nextStep(step) {
+            if (step === 1) {
+                const inp = document.getElementById('user-name');
+                const val = inp.value.trim();
+                hideError('error-name'); inp.classList.remove('input-error');
+                if (val.length < 2) { inp.classList.add('input-error'); showError('error-name', 'Введите имя (минимум 2 символа)'); return; }
+                userData.name = capitalizeName(val);
+                document.querySelectorAll('.username-place').forEach(function (el) { el.textContent = userData.name; });
+                trackEvent('QuizStep1', { name: val });
+            }
+            if (step === 3) {
+                const inp = document.getElementById('user-age');
+                const val = parseInt(inp.value, 10);
+                hideError('error-age'); inp.classList.remove('input-error');
+                if (!val || val < 35 || val > 80) { inp.classList.add('input-error'); showError('error-age', 'Возраст от 35 до 80 лет'); return; }
+                userData.age = val;
+                trackEvent('QuizStep3', { age: val });
+            }
+            document.getElementById('step-' + step).classList.add('hidden');
+            currentStep = step + 1;
+            var nextEl = document.getElementById('step-' + currentStep);
+            nextEl.classList.remove('hidden');
+            if (nextEl.scrollIntoView) nextEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            updateProgress();
+        }
+
+        function selectPain(pain) {
+            userData.pain = pain;
+            trackEvent('QuizStep2', { pain });
+            nextStep(2);
+        }
+
+        function updateResidencyQuestion() {
+            const el = document.getElementById('residency-country');
+            if (!el || !userData.geo) return;
+            el.textContent = GEO_IN_COUNTRY[userData.geo] || ('в ' + userData.geo);
+        }
+
+        function selectGeo(country, prefix) {
+            userData.geo = country;
+            userData.phonePrefix = prefix;
+            document.getElementById('phone-input').value = prefix + ' ';
+            updateResidencyQuestion();
+            trackEvent('QuizStep4', { geo: country });
+            nextStep(4);
+        }
+
+        function selectResidency(d) {
+            userData.residency = d;
+            trackEvent('QuizStep5', { residency: d });
+
+            if (d === 'Проживаю тут меньше 5 лет') {
+                document.getElementById('quiz-screen').classList.add('hidden');
+                document.getElementById('booked-screen').classList.remove('hidden');
+                sendLead(buildLeadPayload({ partial: true, note: 'Менее 5 лет — без телефона' }));
+                trackEvent('EarlyBooked');
+                return;
+            }
+
+            nextStep(5);
+        }
+
+        function selectBelief(label, type) {
+            userData.belief = label;
+            userData.beliefType = type;
+            trackEvent('QuizStep6', { belief: label, beliefType: type });
+            nextStep(6);
+        }
+
+        function rejectUser(reason) {
+            rejectReturnStep = reason === 'curious' ? 7 : 5;
+            document.getElementById('quiz-screen').classList.add('hidden');
+            var msg = document.getElementById('reject-message');
+            msg.textContent = reason === 'curious'
+                ? 'Извините, эксперт тратит силы только на тех, кому действительно нужна помощь. Всего доброго.'
+                : 'Извините, лимит свободных мест для экспресс-диагностики в вашем регионе на сегодня исчерпан.';
+            document.getElementById('reject-screen').classList.remove('hidden');
+            trackEvent('QuizReject', { reason: reason });
+        }
+
+        function returnFromReject() {
+            document.getElementById('reject-screen').classList.add('hidden');
+            document.querySelectorAll('.quiz-step').forEach(function (el) { el.classList.add('hidden'); });
+            currentStep = rejectReturnStep;
+            document.getElementById('step-' + currentStep).classList.remove('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            if (currentStep === 5) updateResidencyQuestion();
+            updateProgress();
+            trackEvent('QuizRejectBack');
+        }
+
+        function fillProfileSummary() {
+            document.getElementById('sum-name').textContent = userData.name;
+            document.getElementById('sum-pain').textContent = PAIN_LABELS[userData.pain] || userData.pain;
+            document.getElementById('sum-age').textContent = userData.age + ' лет';
+            document.getElementById('sum-geo').textContent = userData.geo;
+            document.getElementById('sum-residency').textContent = userData.residency;
+            document.getElementById('sum-belief').textContent = userData.belief || '—';
+        }
+
+        function startSlotTimer() {
+            let sec = 599;
+            if (slotTimerInterval) clearInterval(slotTimerInterval);
+            slotTimerInterval = setInterval(() => {
+                const m = String(Math.floor(sec / 60)).padStart(2, '0');
+                const s = String(sec % 60).padStart(2, '0');
+                document.getElementById('slot-timer').textContent = m + ':' + s;
+                if (--sec < 0) clearInterval(slotTimerInterval);
+            }, 1000);
+        }
+
+        function showLoading() {
+            trackEvent('QuizStep7');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('loading-screen').classList.remove('hidden');
+
+            const phrases = [
+                ['Анализ энергетических каналов...', 'Сканирование биополя...'],
+                ['Сопоставление имени и возраста...', 'Расчёт планетарных циклов...'],
+                ['Поиск свободного эксперта...', 'Бронирование слота...']
+            ];
+            let i = 0;
+            const iv = setInterval(() => {
+                if (i < phrases.length) {
+                    document.getElementById('loading-text').textContent = phrases[i][0];
+                    document.getElementById('loading-sub').textContent = phrases[i][1];
+                    i++;
+                } else {
+                    clearInterval(iv);
+                    document.getElementById('loading-screen').classList.add('hidden');
+                    fillProfileSummary();
+                    startSlotTimer();
+                    document.getElementById('form-screen').classList.remove('hidden');
+                    trackEvent('LeadFormView');
+                }
+            }, 1400);
+        }
+
+        function validatePhone(phone) {
+            const digits = phone.replace(/\D/g, '');
+            const min = PHONE_MIN[userData.phonePrefix] || 10;
+            return digits.length >= min;
+        }
+
+        function buildLeadPayload(extra) {
+            var payload = {
+                name: userData.name,
+                pain: userData.pain,
+                painLabel: PAIN_LABELS[userData.pain] || userData.pain,
+                age: userData.age,
+                geo: userData.geo,
+                residency: userData.residency,
+                belief: userData.belief || '',
+                beliefType: userData.beliefType || '',
+                phone: userData.phone || '',
+                email: userData.email || '',
+                whatsapp: userData.whatsapp,
+                utm: userData.utm,
+                pageUrl: location.href,
+                submittedAt: new Date().toISOString()
+            };
+            if (extra) {
+                for (var key in extra) payload[key] = extra[key];
+            }
+            return payload;
+        }
+
+        async function postLead(url, payload, isApi) {
+            try {
+                var res = await fetch(url, {
+                    method: 'POST',
+                    mode: isApi ? 'cors' : 'no-cors',
+                    headers: isApi
+                        ? { 'Content-Type': 'application/json' }
+                        : { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                if (isApi) return res.ok;
+                return true;
+            } catch (err) {
+                console.warn('Lead POST error:', url, err);
+                return false;
+            }
+        }
+
+        async function sendLead(payload) {
+            var primary = SITE_CONFIG.LEAD_WEBHOOK_URL;
+            var fallback = SITE_CONFIG.LEAD_WEBHOOK_FALLBACK;
+            if ((!primary || primary.indexOf('__LEAD') !== -1) && (!fallback || fallback.indexOf('__LEAD') !== -1)) {
+                return false;
+            }
+            if (primary && primary.indexOf('__LEAD') === -1) {
+                var isApi = primary.indexOf('/api/leads') !== -1;
+                if (await postLead(primary, payload, isApi)) return true;
+            }
+            if (fallback && fallback.indexOf('__LEAD') === -1) {
+                return postLead(fallback, payload, false);
+            }
+            return false;
+        }
+
+        async function submitForm(e) {
+            e.preventDefault();
+            const inp = document.getElementById('phone-input');
+            const phone = inp.value.trim();
+            hideError('error-phone'); inp.classList.remove('input-error');
+            if (!validatePhone(phone)) {
+                inp.classList.add('input-error');
+                showError('error-phone', 'Введите полный номер с кодом страны');
+                return;
+            }
+            userData.phone = phone;
+            userData.whatsapp = document.getElementById('whatsapp-check').checked;
+
+            const btn = document.getElementById('submit-btn');
+            var emailInp = document.getElementById('email-input');
+            var email = emailInp.value.trim();
+            hideError('error-email');
+            emailInp.classList.remove('input-error');
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInp.classList.add('input-error');
+                showError('error-email', 'Введите корректный email или оставьте поле пустым');
+                btn.disabled = false;
+                btn.textContent = 'Подтвердить запись и ожидать звонка';
+                return;
+            }
+            userData.email = email;
+            btn.disabled = true;
+            btn.textContent = 'Отправка...';
+            trackEvent('LeadSubmit', userData);
+
+            await sendLead(buildLeadPayload());
+
+            if (slotTimerInterval) clearInterval(slotTimerInterval);
+            document.getElementById('form-screen').classList.add('hidden');
+            document.getElementById('thank-you-screen').classList.remove('hidden');
+            trackEvent('LeadComplete');
+        }
+    </script>
+</body>
+</html>

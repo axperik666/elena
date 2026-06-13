@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Политика конфиденциальности</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .mystic-bg { background: radial-gradient(circle at center, #1a102f 0%, #0b0616 100%); }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2 { font-family: 'Cormorant Garamond', serif; }
+    </style>
+</head>
+<body class="mystic-bg text-gray-300 min-h-screen">
+    <header class="border-b border-purple-900/40 bg-black/30 backdrop-blur-md p-4">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-purple-400 hover:text-purple-300 text-sm transition">&larr; Вернуться на главную</a>
+            <a href="impressum.html" class="text-purple-500 hover:text-purple-400 text-xs">Impressum</a>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-10 space-y-6">
+        <h1 class="text-3xl text-white font-semibold">Политика конфиденциальности</h1>
+        <p class="text-sm text-gray-500">Последнее обновление: 13 июня 2026 г.</p>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">1. Общие положения</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                Настоящая политика описывает, как мы собираем, используем и защищаем персональные данные, которые вы предоставляете при прохождении экспресс-диагностики и записи на телефонную консультацию.
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">2. Какие данные мы собираем</h2>
+            <ul class="text-sm leading-relaxed text-gray-400 list-disc pl-5 space-y-1">
+                <li>Имя</li>
+                <li>Возраст</li>
+                <li>Страна проживания</li>
+                <li>Номер телефона</li>
+                <li>Ответы на вопросы опроса (сфера проблемы, срок проживания в стране)</li>
+                <li>Технические данные: IP-адрес, тип браузера, UTM-метки (при наличии)</li>
+            </ul>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">3. Цели обработки</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                Данные используются исключительно для связи с вами по телефону, проведения бесплатной экспресс-диагностики и улучшения качества сервиса. Мы не продаём ваши данные третьим лицам.
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">4. Правовое основание (GDPR)</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                Обработка данных осуществляется на основании вашего согласия, которое вы даёте при отправке формы. Вы вправе отозвать согласие, запросить удаление или исправление данных, написав на контактный email.
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">5. Хранение и безопасность</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                Данные хранятся на защищённых серверах с ограниченным доступом. Срок хранения — не более 12 месяцев с момента последнего контакта, если иное не требуется законом.
+            </p>
+        </section>
+
+        <section class="space-y-3">
+            <h2 class="text-xl text-purple-300">6. Контакты</h2>
+            <p class="text-sm leading-relaxed text-gray-400">
+                По вопросам обработки персональных данных:
+                <a id="contact-email-link" href="mailto:" class="text-purple-400 hover:text-purple-300"></a>
+            </p>
+        </section>
+    </main>
+
+    <footer class="p-4 text-center text-[10px] text-gray-600 border-t border-purple-950/20 bg-black/10 mt-12">
+        &copy; 2026 Все права защищены.
+    </footer>
+
+    <script src="config.js"></script>
+    <script>
+        (function () {
+            const email = SITE_CONFIG.CONTACT_EMAIL || 'kontakt@example.com';
+            const link = document.getElementById('contact-email-link');
+            link.href = 'mailto:' + email;
+            link.textContent = email;
+        })();
+    </script>
+</body>
+</html>
