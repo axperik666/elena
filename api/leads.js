@@ -3,6 +3,7 @@ const { getEnvAny } = require('../lib/get-env');
 const { appendLead } = require('../lib/google-sheets');
 const { appendLeadViaWebapp } = require('../lib/google-webapp');
 const { sendTelegramLead } = require('../lib/telegram');
+const { sendFacebookLeadEvent } = require('../lib/facebook-capi');
 
 const SHEET_TIMEOUT_MS = 8000;
 
@@ -50,11 +51,13 @@ module.exports = async function handler(req, res) {
     const hasServiceAccount = !!(getEnvAny('GOOGLE_SERVICE_ACCOUNT_EMAIL') && getEnvAny('GOOGLE_PRIVATE_KEY'));
     const hasSheetsApi = !!(getEnvAny('GOOGLE_SHEET_ID') && hasServiceAccount);
     const hasWebapp = !!getEnvAny('GOOGLE_SHEET_WEBAPP_URL');
+    const hasFacebook = !!(getEnvAny('FB_PIXEL_ID') && getEnvAny('FB_ACCESS_TOKEN'));
     return res.status(200).json({
       ok: true,
       message: 'Leads API. POST JSON to save lead.',
       telegram: hasTg,
       sheets: hasSheetsApi || hasWebapp,
+      facebook: hasFacebook,
       hint: hasTg ? null : 'Добавьте TG_BOT_TOKEN и TG_CHAT_ID в Vercel → Settings → Environment Variables → Redeploy'
     });
   }
@@ -124,6 +127,30 @@ module.exports = async function handler(req, res) {
     telegramError = 'TG_BOT_TOKEN or TG_CHAT_ID not configured on Vercel';
   }
 
+  let facebookOk = false;
+  let facebookError = null;
+
+  const fbPixelId = getEnvAny('FB_PIXEL_ID');
+  const fbAccessToken = getEnvAny('FB_ACCESS_TOKEN');
+  if (fbPixelId && fbAccessToken) {
+    try {
+      const clientIp =
+        (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+        req.headers['x-real-ip'] ||
+        '';
+      await sendFacebookLeadEvent(data, {
+        pixelId: fbPixelId,
+        accessToken: fbAccessToken,
+        clientIp,
+        userAgent: req.headers['user-agent'] || ''
+      });
+      facebookOk = true;
+    } catch (err) {
+      facebookError = String(err.message || err);
+      console.error('Facebook CAPI failed:', err);
+    }
+  }
+
   const ok = telegramOk || !!sheetResult;
 
   if (!ok) {
@@ -139,8 +166,10 @@ module.exports = async function handler(req, res) {
     ok: true,
     telegram: telegramOk,
     sheet: !!sheetResult,
+    facebook: facebookOk,
     sheetError: sheetResult ? null : sheetError,
     telegramError: telegramOk ? null : telegramError,
+    facebookError: facebookOk ? null : facebookError,
     duplicate: sheetResult ? sheetResult.duplicate : false,
     duplicateRows: sheetResult ? sheetResult.duplicateRows : [],
     row: sheetResult ? sheetResult.newRowNum : null

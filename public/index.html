@@ -400,7 +400,7 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
         // ===== НАСТРОЙКИ (всё в одном файле, config.js не нужен) =====
         const SITE_CONFIG = {
             CONTACT_EMAIL: '',
-            FB_PIXEL_ID: '',
+            FB_PIXEL_ID: '1288884196741251',
             // Подставляется при деплое Vercel (scripts/inject-env.js)
             LEAD_WEBHOOK_URL: (location.protocol === 'file:' ? '' : '/api/leads'),
             // Запасной URL если основной не ответил (Apps Script)
@@ -422,6 +422,23 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
 
         function trackEvent(name, params) {
             if (typeof fbq === 'function') fbq('trackCustom', name, params || {});
+        }
+
+        function getCookie(name) {
+            var m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+
+        function generateEventId() {
+            return 'lead_' + Date.now() + '_' + Math.random().toString(36).slice(2, 11);
+        }
+
+        function trackLead(eventId) {
+            if (typeof fbq !== 'function') return;
+            fbq('track', 'Lead', {
+                content_name: userData.geo || '',
+                status: true
+            }, { eventID: eventId });
         }
 
         // ===== Состояние =====
@@ -772,6 +789,8 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
         }
 
         function buildLeadPayload(extra) {
+            var utm = userData.utm || {};
+            var fbclid = utm.fbclid || '';
             var payload = {
                 name: userData.name,
                 pain: userData.pain,
@@ -786,7 +805,10 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
                 whatsapp: userData.whatsapp,
                 utm: userData.utm,
                 pageUrl: location.href,
-                submittedAt: new Date().toISOString()
+                submittedAt: new Date().toISOString(),
+                eventId: userData.eventId || '',
+                fbp: getCookie('_fbp') || '',
+                fbc: getCookie('_fbc') || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '')
             };
             if (extra) {
                 for (var key in extra) payload[key] = extra[key];
@@ -873,6 +895,8 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             userData.email = email;
             btn.disabled = true;
             btn.textContent = 'Отправка...';
+            userData.eventId = generateEventId();
+            trackLead(userData.eventId);
             trackEvent('LeadSubmit', userData);
 
             await Promise.race([
