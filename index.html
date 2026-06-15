@@ -12,6 +12,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1288884196741251');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none" alt=""
+    src="https://www.facebook.com/tr?id=1288884196741251&amp;ev=PageView&amp;noscript=1"/></noscript>
+    <!-- End Meta Pixel Code -->
     <style>
         body { font-family: 'Manrope', sans-serif; }
         h1, h2, .font-serif { font-family: 'Cormorant Garamond', serif; }
@@ -408,18 +421,7 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             EXPERT_NAME: 'Елена М.'
         };
 
-        // ===== Аналитика (Facebook Pixel) =====
-        (function initPixel() {
-            if (!SITE_CONFIG.FB_PIXEL_ID) return;
-            !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-            n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', SITE_CONFIG.FB_PIXEL_ID);
-            fbq('track', 'PageView');
-        })();
-
+        // ===== Аналитика (Facebook Pixel в <head>, здесь только события) =====
         function trackEvent(name, params) {
             if (typeof fbq === 'function') fbq('trackCustom', name, params || {});
         }
