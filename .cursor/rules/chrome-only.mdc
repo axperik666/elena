@@ -27,5 +27,5 @@ $env:BROWSER = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 ## Запрещено
 
 - `Start-Process "https://..."` без указания chrome.exe
-- `vercel login` без `$env:BROWSER` и без `--` (если CLI открывает браузер сам)
+- **`npx vercel` / `vercel login` / `vercel env`** — на Windows CLI открывает **Edge**, игнорируя Chrome. Деплой только через **git push**; env для FB — `lib/fb-config.js` или вручную в панели Vercel (открыть через Chrome).
 - Открывать Vercel / Google Cloud / GitHub через Edge

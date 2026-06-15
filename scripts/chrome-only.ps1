@@ -1,5 +1,6 @@
-# Только Google Chrome — Edge не используем
+# Только Google Chrome — Edge не используем никогда
 $script:Chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+$script:ChromeBrowserCmd = Join-Path $PSScriptRoot 'chrome-browser.cmd'
 
 function Open-Chrome {
     param([Parameter(Mandatory)][string]$Url)
@@ -11,8 +12,9 @@ function Open-Chrome {
 }
 
 function Set-ChromeForCli {
-    $env:BROWSER = $script:Chrome
-    $env:VERCEL_BROWSER = $script:Chrome
+    # CLI на Windows игнорирует путь к chrome.exe — нужна .cmd-обёртка
+    $env:BROWSER = $script:ChromeBrowserCmd
+    $env:VERCEL_BROWSER = $script:ChromeBrowserCmd
 }
 
 Set-ChromeForCli
