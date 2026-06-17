@@ -596,9 +596,8 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
         document.getElementById('phone-input').addEventListener('input', function () {
             const prefix = userData.phonePrefix;
             if (!prefix) return;
-            let digits = this.value.replace(/\D/g, '');
             const prefixDigits = prefix.replace('+', '');
-            if (!digits.startsWith(prefixDigits)) digits = prefixDigits + digits.replace(new RegExp('^' + prefixDigits), '');
+            const digits = normalizePhoneDigits(this.value.replace(/\D/g, ''), prefixDigits);
             const local = digits.slice(prefixDigits.length);
             const formatted = prefix + ' ' + local.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
             this.value = formatted.trim();
@@ -779,14 +778,35 @@ const EXPERT_PHOTO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAg
             }, 1400);
         }
 
+        /** Убирает 00, повтор кода страны и ведущий 0 в локальной части */
+        function normalizePhoneDigits(digits, prefixDigits) {
+            if (!digits || !prefixDigits) return digits || '';
+            if (digits.indexOf('00') === 0) digits = digits.slice(2);
+            if (digits.indexOf(prefixDigits) !== 0) {
+                digits = digits.replace(/^0+/, '');
+                if (digits.indexOf(prefixDigits) !== 0) digits = prefixDigits + digits;
+            }
+            var local = digits.slice(prefixDigits.length);
+            while (local.length) {
+                if (local.indexOf('00') === 0) { local = local.slice(2); continue; }
+                if (local.indexOf(prefixDigits) === 0) { local = local.slice(prefixDigits.length); continue; }
+                if (local.indexOf('0') === 0) { local = local.slice(1); continue; }
+                break;
+            }
+            return prefixDigits + local;
+        }
+
         function validatePhone(phone) {
-            const digits = phone.replace(/\D/g, '');
+            const prefixDigits = (userData.phonePrefix || '').replace('+', '');
+            const digits = normalizePhoneDigits(String(phone || '').replace(/\D/g, ''), prefixDigits);
             const min = PHONE_MIN[userData.phonePrefix] || 10;
-            return digits.length >= min;
+            const max = min + 3;
+            return digits.length >= min && digits.length <= max;
         }
 
         function compactPhone(phone) {
-            var digits = String(phone || '').replace(/\D/g, '');
+            const prefixDigits = (userData.phonePrefix || '').replace('+', '');
+            var digits = normalizePhoneDigits(String(phone || '').replace(/\D/g, ''), prefixDigits);
             return digits ? '+' + digits : '';
         }
 
